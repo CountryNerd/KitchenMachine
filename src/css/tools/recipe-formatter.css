@@ -1,10 +1,10 @@
 /* Recipe Formatter (rf- prefix) */
 
 .rf-card {
-    max-width: 800px;
+    max-width: 1120px;
     margin: 0 auto;
     /* Extra premium padding/look compared to standard cards */
-    padding: 32px;
+    padding: clamp(24px, 4vw, 36px);
     border-radius: 24px;
 }
 
@@ -113,7 +113,7 @@
 
 .rf-formatted-list {
     display: grid;
-    gap: 16px;
+    gap: 22px;
 }
 
 .rf-result-section.hidden {
@@ -136,6 +136,13 @@
     flex-direction: column;
     gap: 4px;
     font-size: 1.5rem;
+}
+
+.rf-result-title-wrap span:last-child {
+    font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    font-size: clamp(1.65rem, 2.8vw, 2.4rem);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
 }
 
 .rf-result-eyebrow {
@@ -459,6 +466,190 @@
     color: color-mix(in srgb, var(--md-sys-color-primary) 72%, black);
 }
 
+.rf-sheet {
+    background:
+        radial-gradient(circle at top left, rgba(205, 220, 175, 0.32), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(239, 222, 182, 0.42), transparent 32%),
+        linear-gradient(180deg, oklch(0.988 0.012 96), oklch(0.968 0.016 96));
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline) 38%, #c8baa3);
+    border-radius: 30px;
+    padding: clamp(22px, 4vw, 34px);
+    box-shadow:
+        0 20px 46px rgba(59, 45, 25, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.92);
+    position: relative;
+    overflow: hidden;
+}
+
+.rf-sheet::after {
+    content: "";
+    position: absolute;
+    inset: 14px;
+    border: 1px solid rgba(105, 83, 52, 0.08);
+    border-radius: 22px;
+    pointer-events: none;
+}
+
+.rf-sheet-meta-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid rgba(90, 72, 44, 0.14);
+    position: relative;
+    z-index: 1;
+}
+
+.rf-sheet-meta-strip span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(126, 112, 84, 0.18);
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) 88%, #4f3f2b);
+    font-size: 0.98rem;
+}
+
+.rf-sheet-meta-strip strong {
+    color: color-mix(in srgb, var(--md-sys-color-primary) 76%, #405300);
+}
+
+.rf-sheet-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.18fr) minmax(300px, 0.82fr);
+    gap: clamp(22px, 3vw, 36px);
+    align-items: start;
+    position: relative;
+    z-index: 1;
+}
+
+.rf-sheet-main {
+    min-width: 0;
+}
+
+.rf-sheet-sidebar {
+    min-width: 0;
+    padding-left: clamp(18px, 2.4vw, 30px);
+    border-left: 1px solid rgba(90, 72, 44, 0.14);
+}
+
+.rf-sheet-intro {
+    margin-bottom: 10px;
+    max-width: 42rem;
+}
+
+.rf-sheet-overline {
+    font-family: var(--md-sys-typescale-label-large-font-family, 'Inter', sans-serif);
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--md-sys-color-primary) 62%, #6b531f);
+}
+
+.rf-sheet-title {
+    margin: 10px 0 10px;
+    font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    font-size: clamp(2.2rem, 5vw, 3.7rem);
+    line-height: 0.92;
+    letter-spacing: -0.05em;
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) 94%, #231b13);
+}
+
+.rf-sheet-summary {
+    margin: 0;
+    max-width: 38rem;
+    font-size: 1.03rem;
+    line-height: 1.65;
+    color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 92%, #5c4d3c);
+}
+
+.rf-sheet-section {
+    margin-top: 22px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(90, 72, 44, 0.14);
+}
+
+.rf-sheet-section-top {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 16px;
+    align-items: start;
+    margin-bottom: 16px;
+}
+
+.rf-sheet-section-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(244, 248, 229, 0.96), rgba(232, 238, 210, 0.96));
+    border: 1px solid rgba(139, 163, 82, 0.28);
+    color: color-mix(in srgb, var(--md-sys-color-primary) 72%, #4c5a1e);
+    font-family: var(--md-sys-typescale-label-large-font-family, 'Inter', sans-serif);
+    font-size: 0.88rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.rf-sheet-section-kicker {
+    font-family: var(--md-sys-typescale-label-large-font-family, 'Inter', sans-serif);
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--md-sys-color-primary) 58%, #7d5f2f);
+}
+
+.rf-sheet-section-copy h4 {
+    margin: 6px 0 8px;
+    font-family: var(--md-sys-typescale-title-large-font-family, 'Outfit', sans-serif);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--md-sys-color-on-surface, #1c1b1f);
+}
+
+.rf-sheet-section-copy p {
+    margin: 0;
+    max-width: 34rem;
+    font-size: 0.98rem;
+    line-height: 1.56;
+    color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 92%, #5a4a38);
+}
+
+.rf-sheet-list,
+.rf-sheet-steps {
+    margin: 0;
+    padding-left: 24px;
+}
+
+.rf-sheet-list li,
+.rf-sheet-steps li {
+    margin-bottom: 12px;
+    line-height: 1.7;
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) 92%, #2b241c);
+}
+
+.rf-sheet-list li:last-child,
+.rf-sheet-steps li:last-child {
+    margin-bottom: 0;
+}
+
+.rf-sheet-tools .rf-equipment-tags {
+    margin-top: 14px;
+}
+
+.rf-sheet-tools .rf-equip-tag {
+    background-color: rgba(255, 255, 255, 0.7);
+    border-color: rgba(140, 120, 88, 0.2);
+    box-shadow: none;
+}
+
 /* Equipment / Tools section */
 .rf-equipment-section {
     background-color: color-mix(in srgb, var(--md-sys-color-tertiary-container) 40%, transparent);
@@ -496,14 +687,9 @@
 }
 
 .rf-nutrition-shell {
-    background:
-        radial-gradient(circle at top right, color-mix(in srgb, var(--md-sys-color-primary) 18%, transparent), transparent 42%),
-        linear-gradient(135deg, color-mix(in srgb, var(--md-sys-color-tertiary-container) 58%, transparent), transparent 38%),
-        linear-gradient(180deg, oklch(0.98 0.016 108), oklch(0.955 0.02 104));
-    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline) 50%, transparent);
-    padding: clamp(18px, 3vw, 28px);
+    padding: 0;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .rf-nutrition-kicker {
@@ -825,6 +1011,25 @@
         bottom: 12px;
     }
 
+    .rf-card {
+        padding: 22px;
+    }
+
+    .rf-sheet {
+        border-radius: 24px;
+        padding: 20px;
+    }
+
+    .rf-sheet::after {
+        inset: 10px;
+        border-radius: 18px;
+    }
+
+    .rf-sheet-section-top {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
     .rf-nutrition-title-row {
         align-items: flex-start;
         flex-direction: column;
@@ -848,6 +1053,19 @@
 
     .rf-nutrition-calories-row td {
         font-size: 2.2rem;
+    }
+}
+
+@media (max-width: 960px) {
+    .rf-sheet-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rf-sheet-sidebar {
+        padding-left: 0;
+        padding-top: 22px;
+        border-left: 0;
+        border-top: 1px solid rgba(90, 72, 44, 0.14);
     }
 }
 
