@@ -11,6 +11,7 @@ interface NutritionRowData {
 }
 
 interface RecipeExportState {
+  title: string;
   prepTime: string;
   cookTime: string;
   servings: string;
@@ -131,6 +132,11 @@ function pickDelightMessage(key: keyof typeof DELIGHT_MESSAGES): string {
   return messages[Math.floor(Math.random() * messages.length)];
 }
 
+function getRecipeDisplayTitle(title: string): string {
+  const trimmedTitle = title.trim();
+  return trimmedTitle || 'Kitchen-ready recipe';
+}
+
 function formatIngredientDisplayName(line: string): string {
   return line
     .trim()
@@ -189,6 +195,37 @@ function buildNutritionRows(estimate: NutritionEstimate): NutritionRowData[] {
   ];
 }
 
+function buildNutritionTrustCopy(estimate: NutritionEstimate): string {
+  if (estimate.matchedIngredientCount === 0) {
+    return 'Estimate unavailable until recognizable ingredients appear in the final recipe.';
+  }
+
+  const ingredientCountLabel = `${estimate.matchedIngredientCount} recognized ingredient${estimate.matchedIngredientCount === 1 ? '' : 's'}`;
+  const baseCopy = estimate.matchedIngredientCount === estimate.totalIngredientCount
+    ? `Estimate based on all ${estimate.totalIngredientCount} ingredient${estimate.totalIngredientCount === 1 ? '' : 's'} in the final recipe.`
+    : `Estimate based on ${ingredientCountLabel}.`;
+
+  if (estimate.unmatchedIngredients.length === 0) {
+    return baseCopy;
+  }
+
+  const excludedIngredients = Array.from(
+    new Set(
+      estimate.unmatchedIngredients
+        .map((ingredient) => formatIngredientDisplayName(ingredient))
+        .filter((ingredient) => ingredient.length > 0)
+    )
+  );
+
+  if (excludedIngredients.length === 0) {
+    return baseCopy;
+  }
+
+  const excludedCopy = excludedIngredients.join(', ');
+  const verb = excludedIngredients.length === 1 ? 'was' : 'were';
+  return `${baseCopy} ${excludedCopy} ${verb} excluded.`;
+}
+
 function buildRecipeIngredientStatement(usedIngredients: string[], estimate: NutritionEstimate): string {
   const recognizedByName = new Map<string, number>();
   const recognizedOriginals = new Set<string>();
@@ -218,13 +255,13 @@ function renderRemovedIngredientNote(removedIngredients: string[]): string {
   }
 
   return `
-    <div class="rf-formatted-section rf-removed-note rf-live-section">
-      <div class="rf-removed-note-title">Removed from the recipe list</div>
-      <p class="rf-removed-note-copy">These ingredients were not mentioned in the instructions, so they were left out of the final ingredient list and nutrition card.</p>
-      <div class="rf-removed-note-items">
-        ${removedIngredients.map((ingredient) => `<span class="rf-removed-note-chip">${escapeHtml(ingredient)}</span>`).join('')}
-      </div>
-    </div>
+    <section class="rf-sheet-note rf-live-section">
+      <div class="rf-sheet-note-kicker">Cook's note</div>
+      <p class="rf-sheet-note-copy">These ingredients never appear in the method, so they were left out of the final ingredient list and nutrition estimate.</p>
+      <ul class="rf-sheet-note-list">
+        ${removedIngredients.map((ingredient) => `<li>${escapeHtml(ingredient)}</li>`).join('')}
+      </ul>
+    </section>
   `;
 }
 
@@ -241,12 +278,9 @@ function renderNutritionLabel(estimate: NutritionEstimate, usedIngredients: stri
   }
 
   const hasServings = estimate.servingsCount !== null;
-  const coverageLabel = `${estimate.matchedIngredientCount} of ${estimate.totalIngredientCount} ingredients recognized`;
-  const unmatchedLabel = estimate.unmatchedIngredients.length > 0
-    ? `Still estimating: ${escapeHtml(estimate.unmatchedIngredients.join(', '))}`
-    : 'Every ingredient still in the recipe is included in this estimate.';
   const ingredientStatement = buildRecipeIngredientStatement(usedIngredients, estimate);
   const nutritionRows = buildNutritionRows(estimate);
+  const trustCopy = buildNutritionTrustCopy(estimate);
 
   return `
     <div class="rf-nutrition-shell rf-live-section">
@@ -261,6 +295,7 @@ function renderNutritionLabel(estimate: NutritionEstimate, usedIngredients: stri
           <span>Serving size</span>
           <strong>${hasServings ? '1 serving' : 'Whole recipe'}</strong>
         </div>
+        <p class="rf-nutrition-trust">${escapeHtml(trustCopy)}</p>
 
         <table class="rf-nutrition-table">
           <thead>
@@ -287,22 +322,53 @@ function renderNutritionLabel(estimate: NutritionEstimate, usedIngredients: stri
           <div class="rf-nutrition-ingredients-note">Shown from the ingredients still used in the final recipe. Recognized pantry items are ordered first by estimated weight.</div>
         </div>
 
-        <div class="rf-nutrition-meta-row">
-          <div class="rf-nutrition-meta-pill">${coverageLabel}</div>
-          <div class="rf-nutrition-meta-copy">${unmatchedLabel}</div>
-        </div>
-
         <div class="rf-nutrition-footnote">Calories and macros are estimated from the ingredients kept in the recipe, common kitchen weights, and your serving count.</div>
       </div>
     </div>
   `;
 }
 
+function renderRecipeActionRail(): string {
+  return `
+    <div class="rf-sheet-utility rf-live-section">
+      <div class="rf-sheet-utility-label">Export &amp; share</div>
+      <div class="rf-sheet-action-row">
+        <button type="button" id="rf-export-pdf" class="rf-action-btn rf-action-btn-primary" aria-label="Export recipe to PDF">
+          <span class="material-icons" aria-hidden="true">picture_as_pdf</span>
+          <span class="rf-action-btn-label">PDF</span>
+        </button>
+        <button type="button" id="rf-export-word" class="rf-action-btn" aria-label="Export recipe to Word">
+          <span class="material-icons" aria-hidden="true">description</span>
+          <span class="rf-action-btn-label">Word</span>
+        </button>
+        <button type="button" id="rf-export-md" class="rf-action-btn" aria-label="Export recipe to Markdown">
+          <span class="material-icons" aria-hidden="true">notes</span>
+          <span class="rf-action-btn-label">Markdown</span>
+        </button>
+        <button type="button" id="rf-copy-btn" class="rf-action-btn" aria-label="Copy recipe to clipboard">
+          <span class="material-icons" aria-hidden="true">content_copy</span>
+          <span class="rf-action-btn-label">Copy</span>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 function renderRecipeSheet(state: RecipeExportState): string {
+  const displayTitle = getRecipeDisplayTitle(state.title);
   const hasMeta = Boolean(state.prepTime || state.cookTime || state.servings);
 
   return `
     <article class="rf-sheet">
+      <header class="rf-sheet-header">
+        <div class="rf-sheet-header-copy rf-live-section">
+          <div class="rf-sheet-overline">Heritage Recipe Sheet</div>
+          <h3 class="rf-sheet-title">${escapeHtml(displayTitle)}</h3>
+          <p class="rf-sheet-summary">Formatted from your working draft with instruction-matched ingredients and a pantry-style nutrition estimate ready to print, save, or share.</p>
+        </div>
+        ${renderRecipeActionRail()}
+      </header>
+
       ${hasMeta ? `
         <div class="rf-sheet-meta-strip rf-live-section">
           ${state.prepTime ? `<span><strong>Prep Time</strong> ${escapeHtml(state.prepTime)}</span>` : ''}
@@ -313,11 +379,7 @@ function renderRecipeSheet(state: RecipeExportState): string {
 
       <div class="rf-sheet-grid">
         <section class="rf-sheet-main">
-          <header class="rf-sheet-intro rf-live-section">
-            <div class="rf-sheet-overline">Printable Recipe Sheet</div>
-            <h3 class="rf-sheet-title">Kitchen-ready recipe</h3>
-            <p class="rf-sheet-summary">Cleaned up for the ingredients your instructions actually use, with a pantry-style nutrition panel ready to print, save, or share.</p>
-          </header>
+          ${renderRemovedIngredientNote(state.removedIngredients)}
 
           ${state.equipment.length > 0 ? `
             <section class="rf-sheet-section rf-sheet-tools rf-live-section">
@@ -428,7 +490,8 @@ function buildSubstitutionTooltip(ingredientText: string, index: number, isMatch
 }
 
 function buildRecipeTextExport(state: RecipeExportState): string {
-  const textLines: string[] = ['RECIPE', ''];
+  const displayTitle = getRecipeDisplayTitle(state.title);
+  const textLines: string[] = [displayTitle, ''];
 
   if (state.prepTime || state.cookTime || state.servings) {
     textLines.push('Meta:');
@@ -439,21 +502,23 @@ function buildRecipeTextExport(state: RecipeExportState): string {
   }
 
   if (state.removedIngredients.length > 0) {
-    textLines.push(`Removed Ingredients: ${state.removedIngredients.join(', ')}`);
+    textLines.push('Cook\'s Note:');
+    textLines.push('- Removed from the final recipe because they do not appear in the method:');
+    state.removedIngredients.forEach((ingredient) => {
+      textLines.push(`  - ${ingredient}`);
+    });
     textLines.push('');
   }
 
   if (state.nutritionEstimate.matchedIngredientCount > 0) {
     const nutritionRows = buildNutritionRows(state.nutritionEstimate);
     textLines.push('Nutrition Facts (Estimate):');
+    textLines.push(`- ${buildNutritionTrustCopy(state.nutritionEstimate)}`);
     nutritionRows.forEach((row) => {
       const servingLabel = row.emphasized ? row.perServing : row.perServing;
       textLines.push(`- ${row.label}: ${servingLabel}${state.nutritionEstimate.servingsCount ? ` per serving | ${row.total} whole recipe` : ''}`);
     });
     textLines.push(`- Ingredients: ${buildRecipeIngredientStatement(state.usedIngredients, state.nutritionEstimate)}`);
-    if (state.nutritionEstimate.unmatchedIngredients.length > 0) {
-      textLines.push(`- Still Estimating: ${state.nutritionEstimate.unmatchedIngredients.join(', ')}`);
-    }
     textLines.push('');
   }
 
@@ -476,7 +541,8 @@ function buildRecipeTextExport(state: RecipeExportState): string {
 }
 
 function buildRecipeMarkdownExport(state: RecipeExportState): string {
-  const lines: string[] = ['# Recipe', ''];
+  const displayTitle = getRecipeDisplayTitle(state.title);
+  const lines: string[] = [`# ${displayTitle}`, ''];
 
   if (state.prepTime || state.cookTime || state.servings) {
     lines.push('## Meta');
@@ -487,19 +553,20 @@ function buildRecipeMarkdownExport(state: RecipeExportState): string {
   }
 
   if (state.removedIngredients.length > 0) {
-    lines.push(`> Removed from final recipe list: ${state.removedIngredients.join(', ')}`);
+    lines.push('## Cook\'s Note');
+    lines.push('These ingredients were left out of the final recipe because they do not appear in the method:');
+    lines.push('');
+    state.removedIngredients.forEach((ingredient) => lines.push(`- ${ingredient}`));
     lines.push('');
   }
 
   if (state.nutritionEstimate.matchedIngredientCount > 0) {
     lines.push('## Nutrition Facts (Estimate)');
+    lines.push(`- Trust note: ${buildNutritionTrustCopy(state.nutritionEstimate)}`);
     buildNutritionRows(state.nutritionEstimate).forEach((row) => {
       lines.push(`- ${row.label}: ${row.perServing}${state.nutritionEstimate.servingsCount ? ` per serving | ${row.total} whole recipe` : ''}`);
     });
     lines.push(`- Ingredients: ${buildRecipeIngredientStatement(state.usedIngredients, state.nutritionEstimate)}`);
-    if (state.nutritionEstimate.unmatchedIngredients.length > 0) {
-      lines.push(`- Still Estimating: ${state.nutritionEstimate.unmatchedIngredients.join(', ')}`);
-    }
     lines.push('');
   }
 
@@ -519,20 +586,18 @@ function buildRecipeMarkdownExport(state: RecipeExportState): string {
 }
 
 function buildRecipeDocumentHtml(state: RecipeExportState): string {
+  const displayTitle = getRecipeDisplayTitle(state.title);
   const nutritionRows = buildNutritionRows(state.nutritionEstimate);
   const hasServings = state.nutritionEstimate.servingsCount !== null;
-  const coverageLabel = `${state.nutritionEstimate.matchedIngredientCount} of ${state.nutritionEstimate.totalIngredientCount} ingredients recognized`;
-  const unmatchedLabel = state.nutritionEstimate.unmatchedIngredients.length > 0
-    ? `Still estimating: ${state.nutritionEstimate.unmatchedIngredients.join(', ')}`
-    : 'Every ingredient still in the recipe is included in this estimate.';
   const ingredientStatement = buildRecipeIngredientStatement(state.usedIngredients, state.nutritionEstimate);
+  const trustCopy = buildNutritionTrustCopy(state.nutritionEstimate);
 
   return `
     <!doctype html>
     <html lang="en">
       <head>
         <meta charset="utf-8">
-        <title>Recipe Export</title>
+        <title>${escapeHtml(displayTitle)}</title>
         <style>
           @page {
             margin: 0.55in;
@@ -591,11 +656,42 @@ function buildRecipeDocumentHtml(state: RecipeExportState): string {
             color: #5f5243;
           }
 
+          .sheet-header {
+            display: table;
+            width: 100%;
+            margin-bottom: 22px;
+          }
+
+          .sheet-header-copy,
+          .sheet-header-utility {
+            display: table-cell;
+            vertical-align: top;
+          }
+
+          .sheet-header-utility {
+            width: 200px;
+            text-align: right;
+          }
+
+          .sheet-header-utility-label {
+            display: inline-block;
+            padding: 8px 12px;
+            border: 1px solid #d7c9b3;
+            border-radius: 999px;
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #70572e;
+            background: rgba(255, 255, 255, 0.72);
+          }
+
           .meta {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin: 22px 0 24px;
+            margin: 0 0 24px;
             padding-bottom: 22px;
             border-bottom: 1px solid #dfd2bf;
           }
@@ -617,7 +713,7 @@ function buildRecipeDocumentHtml(state: RecipeExportState): string {
           }
 
           .removed {
-            margin: 0 0 20px;
+            margin: 0 0 22px;
             padding: 18px;
             border-radius: 18px;
             background: linear-gradient(180deg, #fff4de, #f9ead1);
@@ -638,8 +734,11 @@ function buildRecipeDocumentHtml(state: RecipeExportState): string {
             color: #6a5731;
           }
 
-          .removed-chips {
-            margin-top: 12px;
+          .removed-list {
+            margin: 12px 0 0;
+            padding-left: 22px;
+            font-size: 14px;
+            line-height: 1.6;
           }
 
           .sheet-table {
@@ -843,6 +942,14 @@ function buildRecipeDocumentHtml(state: RecipeExportState): string {
             float: right;
           }
 
+          .nutrition-trust {
+            margin: 12px 0 0;
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #4d4135;
+          }
+
           .nutrition table {
             width: 100%;
             border-collapse: collapse;
@@ -938,31 +1045,6 @@ function buildRecipeDocumentHtml(state: RecipeExportState): string {
             color: #5e5348;
           }
 
-          .nutrition-meta {
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid rgba(30, 24, 18, 0.18);
-          }
-
-          .nutrition-meta-pill {
-            display: inline-block;
-            padding: 8px 12px;
-            border-radius: 999px;
-            background: #1f1812;
-            color: #fbf8f2;
-            font-family: "Helvetica Neue", Arial, sans-serif;
-            font-size: 12px;
-            font-weight: 800;
-          }
-
-          .nutrition-meta-copy {
-            margin-top: 8px;
-            font-family: "Helvetica Neue", Arial, sans-serif;
-            font-size: 14px;
-            line-height: 1.45;
-            color: #4f453a;
-          }
-
           .nutrition-footnote {
             margin-top: 10px;
             padding-top: 8px;
@@ -997,9 +1079,16 @@ function buildRecipeDocumentHtml(state: RecipeExportState): string {
       </head>
       <body>
         <main class="doc">
-          <div class="doc-overline">Printable Recipe Sheet</div>
-          <h1>Kitchen-ready recipe</h1>
-          <p class="summary">A clean left-to-right recipe layout for binders, kitchen counters, and quick sharing, with the nutrition estimate alongside the final ingredient list.</p>
+          <div class="sheet-header">
+            <div class="sheet-header-copy">
+              <div class="doc-overline">Heritage Recipe Sheet</div>
+              <h1>${escapeHtml(displayTitle)}</h1>
+              <p class="summary">Formatted from your working draft with instruction-matched ingredients and a pantry-style nutrition estimate ready to print, save, or share.</p>
+            </div>
+            <div class="sheet-header-utility">
+              <div class="sheet-header-utility-label">Printable kitchen copy</div>
+            </div>
+          </div>
 
           ${(state.prepTime || state.cookTime || state.servings) ? `
             <div class="meta">
@@ -1009,19 +1098,19 @@ function buildRecipeDocumentHtml(state: RecipeExportState): string {
             </div>
           ` : ''}
 
-          ${state.removedIngredients.length > 0 ? `
-            <div class="removed">
-              <div class="removed-title">Removed from the recipe list</div>
-              <p class="removed-copy">These ingredients were not mentioned in the instructions, so they were left out of the final ingredient list and nutrition panel.</p>
-              <div class="removed-chips">
-                ${state.removedIngredients.map((ingredient) => `<span class="removed-chip">${escapeHtml(ingredient)}</span>`).join('')}
-              </div>
-            </div>
-          ` : ''}
-
           <table class="sheet-table" role="presentation">
             <tr>
               <td class="sheet-main">
+                ${state.removedIngredients.length > 0 ? `
+                  <div class="removed">
+                    <div class="removed-title">Cook's note</div>
+                    <p class="removed-copy">These ingredients never appear in the method, so they were left out of the final ingredient list and nutrition estimate.</p>
+                    <ul class="removed-list">
+                      ${state.removedIngredients.map((ingredient) => `<li>${escapeHtml(ingredient)}</li>`).join('')}
+                    </ul>
+                  </div>
+                ` : ''}
+
                 ${state.equipment.length > 0 ? `
                   <section class="section">
                     <div class="section-head">
@@ -1075,6 +1164,7 @@ function buildRecipeDocumentHtml(state: RecipeExportState): string {
                         <span>Serving size</span>
                         <span>${hasServings ? '1 serving' : 'Whole recipe'}</span>
                       </div>
+                      <div class="nutrition-trust">${escapeHtml(trustCopy)}</div>
                       <table>
                         <thead>
                           <tr>
@@ -1097,10 +1187,6 @@ function buildRecipeDocumentHtml(state: RecipeExportState): string {
                         <div class="nutrition-ingredients-label">Ingredients</div>
                         <p>${escapeHtml(ingredientStatement)}</p>
                         <div class="nutrition-note">Shown from the ingredients still used in the final recipe. Recognized pantry items are ordered first by estimated weight.</div>
-                      </div>
-                      <div class="nutrition-meta">
-                        <div class="nutrition-meta-pill">${escapeHtml(coverageLabel)}</div>
-                        <div class="nutrition-meta-copy">${escapeHtml(unmatchedLabel)}</div>
                       </div>
                       <div class="nutrition-footnote">Calories and macros are estimated from the ingredients kept in the recipe, common kitchen weights, and your serving count.</div>
                     </div>
@@ -1224,6 +1310,7 @@ function exportRecipeToMarkdown(state: RecipeExportState) {
 }
 
 function buildRecipeState(
+  title: string,
   prepTime: string,
   cookTime: string,
   servings: string,
@@ -1232,6 +1319,7 @@ function buildRecipeState(
   instructions: string
 ): RecipeExportState {
   return {
+    title,
     prepTime,
     cookTime,
     servings,
@@ -1247,6 +1335,11 @@ export function renderRecipeFormatter(): string {
   return `
     <div class="card rf-card">
       <form id="recipe-formatter-form">
+        <div class="rf-input-group">
+          <label for="formatter-title" class="rf-label">Recipe Title</label>
+          <input type="text" id="formatter-title" class="rf-input" placeholder="e.g. Sunday Cinnamon Cake">
+        </div>
+
         <div class="rf-meta-inputs">
           <div class="rf-input-group">
             <label for="formatter-prep" class="rf-label">Prep Time</label>
@@ -1296,30 +1389,6 @@ export function renderRecipeFormatter(): string {
       </div>
 
       <div id="formatter-result-section" class="rf-result-section hidden">
-        <div class="rf-result-header">
-          <div class="rf-result-title-wrap">
-            <span class="rf-result-eyebrow">Kitchen Copy</span>
-            <span>Printable Recipe Sheet</span>
-          </div>
-          <div class="rf-result-actions">
-            <button type="button" id="rf-copy-btn" class="rf-action-btn rf-action-btn-primary" aria-label="Copy recipe to clipboard">
-              <span class="material-icons" aria-hidden="true">content_copy</span>
-              <span class="rf-action-btn-label">Copy</span>
-            </button>
-            <button type="button" id="rf-export-pdf" class="rf-action-btn" aria-label="Export recipe to PDF">
-              <span class="material-icons" aria-hidden="true">picture_as_pdf</span>
-              <span class="rf-action-btn-label">PDF</span>
-            </button>
-            <button type="button" id="rf-export-word" class="rf-action-btn" aria-label="Export recipe to Word">
-              <span class="material-icons" aria-hidden="true">description</span>
-              <span class="rf-action-btn-label">Word</span>
-            </button>
-            <button type="button" id="rf-export-md" class="rf-action-btn" aria-label="Export recipe to Markdown">
-              <span class="material-icons" aria-hidden="true">notes</span>
-              <span class="rf-action-btn-label">Markdown</span>
-            </button>
-          </div>
-        </div>
         <div id="formatted-ingredients-list" class="rf-formatted-list"></div>
       </div>
       <div id="rf-toast-stack" class="rf-toast-stack" aria-live="polite" aria-atomic="false"></div>
@@ -1329,10 +1398,7 @@ export function renderRecipeFormatter(): string {
 
 export function attachRecipeFormatterListeners() {
   const form = document.querySelector<HTMLFormElement>('#recipe-formatter-form');
-  const copyButton = document.querySelector<HTMLButtonElement>('#rf-copy-btn');
-  const pdfButton = document.querySelector<HTMLButtonElement>('#rf-export-pdf');
-  const wordButton = document.querySelector<HTMLButtonElement>('#rf-export-word');
-  const markdownButton = document.querySelector<HTMLButtonElement>('#rf-export-md');
+  const card = form?.closest<HTMLElement>('.rf-card') ?? null;
   let lastRecipeState: RecipeExportState | null = null;
   let submitReason: SubmitReason = 'format';
 
@@ -1343,6 +1409,7 @@ export function attachRecipeFormatterListeners() {
   form.addEventListener('submit', (event) => {
     event.preventDefault();
 
+    const title = document.querySelector<HTMLInputElement>('#formatter-title')!.value;
     const prepTime = document.querySelector<HTMLInputElement>('#formatter-prep')!.value;
     const cookTime = document.querySelector<HTMLInputElement>('#formatter-cook')!.value;
     const servings = document.querySelector<HTMLInputElement>('#formatter-servings')!.value;
@@ -1354,6 +1421,7 @@ export function attachRecipeFormatterListeners() {
     const nutritionEstimate = buildNutritionEstimate(formattedRecipe.reorderedIngredients, servings);
 
     lastRecipeState = buildRecipeState(
+      title,
       prepTime,
       cookTime,
       servings,
@@ -1370,8 +1438,6 @@ export function attachRecipeFormatterListeners() {
     }
 
     let html = '';
-
-    html += renderRemovedIngredientNote(lastRecipeState.removedIngredients);
     html += renderRecipeSheet(lastRecipeState);
 
     resultList.innerHTML = html;
@@ -1390,13 +1456,17 @@ export function attachRecipeFormatterListeners() {
       showFormatterToast(pickDelightMessage('format'), 'success');
     }
     submitReason = 'format';
+  });
 
-    const swapButtons = resultList.querySelectorAll<HTMLButtonElement>('.rf-swap-btn');
-    swapButtons.forEach((button) => {
-      button.addEventListener('click', (buttonEvent) => {
-        const target = buttonEvent.currentTarget as HTMLButtonElement;
+  if (card) {
+    card.addEventListener('click', (event) => {
+      const target = (event.target as HTMLElement).closest<HTMLButtonElement>('button');
+      if (!target) {
+        return;
+      }
+
+      if (target.classList.contains('rf-swap-btn')) {
         const substituteText = target.dataset.sub;
-
         if (!substituteText) {
           return;
         }
@@ -1411,52 +1481,42 @@ export function attachRecipeFormatterListeners() {
 
         submitReason = 'swap';
         form.requestSubmit();
-      });
-    });
-  });
+        return;
+      }
 
-  if (copyButton) {
-    copyButton.addEventListener('click', () => {
       if (!lastRecipeState) {
         return;
       }
 
-      navigator.clipboard.writeText(buildRecipeTextExport(lastRecipeState)).then(() => {
-        flashActionButtonLabel(copyButton, 'Copied', 'Copy');
-        showFormatterToast(pickDelightMessage('copy'), 'success');
-      });
-    });
-  }
+      if (target.id === 'rf-copy-btn') {
+        navigator.clipboard.writeText(buildRecipeTextExport(lastRecipeState)).then(() => {
+          flashActionButtonLabel(target, 'Copied', 'Copy');
+          showFormatterToast(pickDelightMessage('copy'), 'success');
+        });
+        return;
+      }
 
-  if (pdfButton) {
-    pdfButton.addEventListener('click', () => {
-      if (lastRecipeState) {
+      if (target.id === 'rf-export-pdf') {
         const didOpen = exportRecipeToPdf(lastRecipeState);
         if (didOpen) {
-          flashActionButtonLabel(pdfButton, 'Opened', 'PDF');
+          flashActionButtonLabel(target, 'Opened', 'PDF');
           showFormatterToast(pickDelightMessage('pdf'), 'info');
         } else {
           showFormatterToast(pickDelightMessage('blocked'), 'warning');
         }
+        return;
       }
-    });
-  }
 
-  if (wordButton) {
-    wordButton.addEventListener('click', () => {
-      if (lastRecipeState) {
+      if (target.id === 'rf-export-word') {
         exportRecipeToWord(lastRecipeState);
-        flashActionButtonLabel(wordButton, 'Saved', 'Word');
+        flashActionButtonLabel(target, 'Saved', 'Word');
         showFormatterToast(pickDelightMessage('word'), 'success');
+        return;
       }
-    });
-  }
 
-  if (markdownButton) {
-    markdownButton.addEventListener('click', () => {
-      if (lastRecipeState) {
+      if (target.id === 'rf-export-md') {
         exportRecipeToMarkdown(lastRecipeState);
-        flashActionButtonLabel(markdownButton, 'Saved', 'Markdown');
+        flashActionButtonLabel(target, 'Saved', 'Markdown');
         showFormatterToast(pickDelightMessage('markdown'), 'success');
       }
     });
