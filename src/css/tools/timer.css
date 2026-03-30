@@ -1,0 +1,285 @@
+/* Kitchen Timer */
+.timer-card {
+    text-align: center;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.timer-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--md-sys-color-on-surface);
+    margin-bottom: var(--spacing-md);
+}
+
+.timer-circle {
+    width: 400px;
+    height: 400px;
+    margin: var(--spacing-xl) auto;
+    background: linear-gradient(135deg, var(--md-sys-color-primary-container) 0%, var(--md-sys-color-surface-variant) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 8px 16px rgba(0, 0, 0, 0.1),
+        0 0 0 12px var(--md-sys-color-surface),
+        0 0 0 14px var(--md-sys-color-outline-variant),
+        inset 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.timer-progress-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: rotate(-90deg);
+    pointer-events: none;
+}
+
+.timer-progress-ring-bg {
+    fill: none;
+    stroke: rgba(0, 0, 0, 0.08);
+    stroke-width: 6;
+    stroke-dasharray: 4 12;
+    stroke-linecap: round;
+}
+
+.timer-progress-ring-fill {
+    fill: none;
+    stroke: url(#timer-gradient);
+    stroke-width: 12;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.timer-display-container {
+    text-align: center;
+}
+
+.timer-display-editable {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.timer-digit-input {
+    font-family: var(--font-family-heading);
+    font-size: 5.5rem;
+    font-weight: 800;
+    color: var(--md-sys-color-on-surface);
+    background: transparent;
+    border: none;
+    width: 105px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    outline: none;
+    padding: 8px 0;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.timer-digit-input:hover {
+    background: var(--md-sys-color-surface-container-high);
+}
+
+.timer-digit-input:focus {
+    background: var(--md-sys-color-surface-variant);
+    cursor: text;
+}
+
+.timer-digit-input:disabled {
+    cursor: not-allowed;
+    opacity: 0.9;
+}
+
+.timer-separator {
+    font-family: var(--font-family-heading);
+    font-size: 4.2rem;
+    font-weight: 800;
+    color: var(--md-sys-color-on-surface-variant);
+    opacity: 0.8;
+    margin-bottom: 8px;
+}
+
+.timer-label {
+    font-size: 0.75rem;
+    color: var(--md-sys-color-on-primary-container);
+    opacity: 0.7;
+    margin-top: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.timer-quick-actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+}
+
+.timer-quick-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    background: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface-variant);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 100px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.timer-quick-btn .material-icons {
+    font-size: 18px;
+}
+
+.timer-quick-btn:hover {
+    background: var(--md-sys-color-surface-container-high);
+    color: var(--md-sys-color-on-surface);
+    transform: translateY(-2px);
+    box-shadow: var(--elevation-1);
+}
+
+.timer-quick-btn:active {
+    transform: translateY(0);
+}
+
+.timer-controls {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+}
+
+.timer-btn {
+    background: var(--md-sys-color-surface);
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: 50%;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--md-sys-color-on-surface);
+}
+
+.timer-btn:hover {
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    transform: scale(1.1);
+    box-shadow: var(--elevation-2);
+}
+
+.timer-btn:active {
+    transform: scale(0.95);
+}
+
+.timer-btn-start {
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    border-color: var(--md-sys-color-primary);
+}
+
+.timer-btn-start:hover {
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+}
+
+/* Light theme timer styles - Tomato */
+:root[data-theme="light"] .timer-circle {
+    background:
+        radial-gradient(circle at 50% 50%,
+            #ff6b6b 0%,
+            #ee5a52 40%,
+            #dc4c3f 70%,
+            #c9423a 100%);
+    box-shadow:
+        0 8px 16px rgba(220, 76, 63, 0.3),
+        0 0 0 12px #ffffff,
+        0 0 0 14px rgba(220, 76, 63, 0.2),
+        inset -8px -8px 16px rgba(0, 0, 0, 0.15),
+        inset 8px 8px 16px rgba(255, 255, 255, 0.3);
+}
+
+:root[data-theme="light"] .timer-progress-ring-fill {
+    stroke: #8b0000;
+    filter: drop-shadow(0 0 8px rgba(220, 76, 63, 0.6));
+}
+
+:root[data-theme="light"] .timer-progress-ring-bg {
+    stroke: rgba(139, 0, 0, 0.15);
+}
+
+:root[data-theme="light"] .timer-digit-input,
+:root[data-theme="light"] .timer-separator {
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme="light"] .timer-label {
+    color: #ffffff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark theme timer styles */
+:root[data-theme="dark"] .timer-circle {
+    background: var(--md-sys-color-background);
+    box-shadow:
+        0 8px 16px rgba(0, 0, 0, 0.5),
+        0 0 0 12px rgba(30, 25, 22, 0.6),
+        inset 0 2px 8px rgba(0, 0, 0, 0.4);
+    animation: timerGlow 3s ease-in-out infinite;
+}
+
+:root[data-theme="dark"] .timer-progress-ring-fill {
+    filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.8));
+}
+
+@keyframes timerGlow {
+
+    0%,
+    100% {
+        box-shadow:
+            0 8px 16px rgba(0, 0, 0, 0.5),
+            0 0 0 12px rgba(30, 25, 22, 0.6),
+            0 0 40px rgba(249, 115, 22, 0.1),
+            inset 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    50% {
+        box-shadow:
+            0 8px 16px rgba(0, 0, 0, 0.5),
+            0 0 0 12px rgba(30, 25, 22, 0.6),
+            0 0 60px rgba(239, 68, 68, 0.2),
+            inset 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+}
+
+/* Fresh theme timer styles */
+:root[data-theme="fresh"] .timer-circle {
+    background: linear-gradient(135deg, #e8f5d8 0%, #d4f0cc 100%);
+    box-shadow:
+        0 8px 16px rgba(145, 193, 30, 0.15),
+        0 0 0 12px #ffffff,
+        0 0 0 14px #91c11e,
+        0 0 40px rgba(145, 193, 30, 0.2),
+        inset 0 2px 8px rgba(145, 193, 30, 0.1);
+}
+
+:root[data-theme="fresh"] .timer-quick-btn {
+    background: #e8f5d8;
+    color: #2d5000;
+    border-color: #91c11e;
+}
+
+:root[data-theme="fresh"] .timer-quick-btn:hover {
+    background: #91c11e;
+    color: #ffffff;
+}

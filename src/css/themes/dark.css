@@ -1,0 +1,151 @@
+/* Dark Theme */
+:root[data-theme="dark"] {
+    /* Rich slate background */
+    --md-sys-color-background: #0f172a;
+    --md-sys-color-on-background: #f8fafc;
+    /* Translucent slate surface for glassmorphism */
+    --md-sys-color-surface: rgba(30, 41, 59, 0.7);
+    --md-sys-color-surface-container: rgba(15, 23, 42, 0.75);
+    --md-sys-color-surface-container-high: rgba(51, 65, 85, 0.8);
+    --md-sys-color-surface-variant: rgba(51, 65, 85, 0.5);
+    --md-sys-color-on-surface: #f1f5f9;
+    --md-sys-color-on-surface-variant: #cbd5e1;
+
+    /* Sunset gradient colors */
+    --md-sys-color-primary: #f97316;
+    --md-sys-color-on-primary: #ffffff;
+    --md-sys-color-primary-container: rgba(234, 88, 12, 0.2);
+    --md-sys-color-on-primary-container: #fed7aa;
+
+    --md-sys-color-secondary: #94a3b8;
+    --md-sys-color-on-secondary: #0f172a;
+    --md-sys-color-secondary-container: rgba(148, 163, 184, 0.15);
+    --md-sys-color-on-secondary-container: #e2e8f0;
+
+    --md-sys-color-error: #ef4444;
+    --md-sys-color-outline: rgba(148, 163, 184, 0.4);
+    --md-sys-color-outline-variant: rgba(148, 163, 184, 0.15);
+
+    /* Elevation */
+    --elevation-1: 0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
+    --elevation-2: 0px 2px 6px 2px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
+    --elevation-3: 0px 1px 3px 0px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* Fire/flame pattern for dark mode */
+:root[data-theme="dark"] body {
+    background:
+        /* Bright flame tips */
+        radial-gradient(ellipse 800px 400px at 50% 120%,
+            rgba(255, 180, 0, 0.15) 0%,
+            rgba(255, 120, 30, 0.12) 30%,
+            rgba(255, 60, 0, 0.08) 50%,
+            transparent 70%),
+        /* Side flames */
+        radial-gradient(ellipse 600px 800px at -10% 50%,
+            rgba(255, 100, 20, 0.08) 0%,
+            rgba(255, 80, 0, 0.05) 40%,
+            transparent 60%),
+        radial-gradient(ellipse 600px 800px at 110% 50%,
+            rgba(255, 100, 20, 0.08) 0%,
+            rgba(255, 80, 0, 0.05) 40%,
+            transparent 60%),
+        /* Ember glow from top */
+        radial-gradient(ellipse 1000px 300px at 50% -10%,
+            rgba(255, 140, 40, 0.1) 0%,
+            rgba(200, 80, 20, 0.06) 40%,
+            transparent 60%),
+        /* Base heat */
+        linear-gradient(to top,
+            rgba(40, 20, 10, 1) 0%,
+            rgba(25, 15, 10, 1) 30%,
+            rgba(15, 12, 15, 1) 60%,
+            rgba(10, 12, 18, 1) 100%);
+    background-attachment: fixed;
+}
+
+:root[data-theme="dark"] body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+        /* Flickering flame effect - using multiple radials */
+        radial-gradient(circle at 30% 100%,
+            rgba(255, 150, 50, 0.12) 0%,
+            transparent 20%),
+        radial-gradient(circle at 50% 105%,
+            rgba(255, 180, 60, 0.15) 0%,
+            transparent 25%),
+        radial-gradient(circle at 70% 100%,
+            rgba(255, 140, 40, 0.1) 0%,
+            transparent 20%),
+        /* Subtle texture */
+        repeating-linear-gradient(90deg,
+            transparent,
+            transparent 100px,
+            rgba(255, 100, 30, 0.03) 100px,
+            rgba(255, 100, 30, 0.03) 101px);
+    pointer-events: none;
+    z-index: 0;
+    animation: flameFlicker 4s ease-in-out infinite;
+}
+
+@keyframes flameFlicker {
+
+    0%,
+    100% {
+        opacity: 0.8;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+:root[data-theme="dark"] .main-content {
+    background-color: transparent;
+}
+
+:root[data-theme="dark"] .nav-rail {
+    background: linear-gradient(to right,
+            rgba(35, 30, 25, 0.98) 0%,
+            rgba(30, 25, 22, 0.95) 100%);
+    border-right: 1px solid rgba(255, 120, 50, 0.3);
+    box-shadow:
+        2px 0 20px rgba(255, 100, 30, 0.2),
+        inset -1px 0 0 rgba(255, 140, 60, 0.15);
+}
+
+:root[data-theme="dark"] .card {
+    background: linear-gradient(to bottom,
+            rgba(35, 30, 25, 0.92) 0%,
+            rgba(30, 25, 22, 0.95) 50%,
+            rgba(40, 30, 25, 0.92) 100%);
+    border: 1px solid rgba(255, 120, 50, 0.25);
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.5),
+        0 0 40px rgba(255, 100, 30, 0.15),
+        0 0 80px rgba(255, 140, 50, 0.08),
+        inset 0 1px 0 rgba(255, 150, 80, 0.15),
+        inset 0 -1px 0 rgba(255, 100, 30, 0.1);
+}
+
+:root[data-theme="dark"] .convert-btn {
+    background: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+    box-shadow:
+        0 4px 12px rgba(249, 115, 22, 0.3),
+        0 0 30px rgba(239, 68, 68, 0.2),
+        0 0 50px rgba(249, 115, 22, 0.1);
+}
+
+:root[data-theme="dark"] .convert-btn:hover {
+    background: linear-gradient(135deg, #fb923c 0%, #f87171 100%);
+    box-shadow:
+        0 6px 20px rgba(249, 115, 22, 0.4),
+        0 0 40px rgba(239, 68, 68, 0.3),
+        0 0 70px rgba(249, 115, 22, 0.2);
+    transform: translateY(-2px);
+}

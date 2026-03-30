@@ -1,0 +1,121 @@
+/* Fresh Theme */
+:root[data-theme="fresh"] {
+    --md-sys-color-background: #f7f9f5;
+    --md-sys-color-on-background: #1a1a1a;
+    --md-sys-color-surface: #ffffff;
+    --md-sys-color-surface-container: #ffffff;
+    --md-sys-color-surface-container-high: #f0f4ec;
+    --md-sys-color-surface-variant: #e8f0e3;
+    --md-sys-color-on-surface: #1a1a1a;
+    --md-sys-color-on-surface-variant: #3d4a35;
+    --md-sys-color-primary: #91c11e;
+    --md-sys-color-on-primary: #ffffff;
+    --md-sys-color-primary-container: #e8f5d8;
+    --md-sys-color-on-primary-container: #2d5000;
+    --md-sys-color-secondary: #ff6d00;
+    --md-sys-color-on-secondary: #ffffff;
+    --md-sys-color-secondary-container: #fff3e0;
+    --md-sys-color-on-secondary-container: #993d00;
+    --md-sys-color-tertiary: #5cae47;
+    --md-sys-color-on-tertiary: #ffffff;
+    --md-sys-color-tertiary-container: #d4f0cc;
+    --md-sys-color-on-tertiary-container: #1e4d14;
+    --md-sys-color-error: #d32f2f;
+    --md-sys-color-outline: #8b9986;
+    --md-sys-color-outline-variant: #c8d3c1;
+
+    /* Elevation */
+    --elevation-1: 0px 2px 4px rgba(145, 193, 30, 0.1), 0px 1px 2px rgba(0, 0, 0, 0.06);
+    --elevation-2: 0px 4px 8px rgba(145, 193, 30, 0.12), 0px 2px 4px rgba(0, 0, 0, 0.08);
+    --elevation-3: 0px 6px 12px rgba(145, 193, 30, 0.15), 0px 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Fresh ingredient pattern */
+:root[data-theme="fresh"] body {
+    background:
+        /* Vegetable/leaf pattern using dots */
+        radial-gradient(
+            circle at 20% 80%,
+            rgba(92, 174, 71, 0.06) 0%,
+            transparent 50%
+        ),
+        radial-gradient(
+            circle at 80% 20%,
+            rgba(145, 193, 30, 0.05) 0%,
+            transparent 50%
+        ),
+        radial-gradient(
+            circle at 50% 50%,
+            rgba(92, 174, 71, 0.04) 0%,
+            transparent 60%
+        ),
+        /* Subtle diagonal lines */
+        repeating-linear-gradient(
+            135deg,
+            transparent,
+            transparent 80px,
+            rgba(145, 193, 30, 0.02) 80px,
+            rgba(145, 193, 30, 0.02) 81px
+        ),
+        #f7f9f5;
+    background-attachment: fixed;
+}
+
+:root[data-theme="fresh"] body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+        linear-gradient(
+            to bottom,
+            rgba(247, 249, 245, 0.5) 0%,
+            rgba(247, 249, 245, 0.2) 50%,
+            rgba(247, 249, 245, 0.5) 100%
+        );
+    pointer-events: none;
+    z-index: 0;
+}
+
+:root[data-theme="fresh"] .main-content {
+    background-color: transparent;
+}
+
+:root[data-theme="fresh"] .nav-rail {
+    background: linear-gradient(
+        to bottom,
+        #ffffff 0%,
+        #f7fdf0 100%
+    );
+    border-right: 1px solid rgba(145, 193, 30, 0.2);
+    box-shadow: 2px 0 12px rgba(145, 193, 30, 0.08);
+}
+
+:root[data-theme="fresh"] .card {
+    background: #ffffff;
+    border: 2px solid #e8f5d8;
+    box-shadow:
+        0 4px 12px rgba(145, 193, 30, 0.08),
+        0 1px 3px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+:root[data-theme="fresh"] .card:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 20px rgba(145, 193, 30, 0.12),
+        0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="fresh"] .convert-btn {
+    background: linear-gradient(135deg, #91c11e 0%, #7fa519 100%);
+    box-shadow: 0 4px 12px rgba(145, 193, 30, 0.25);
+}
+
+:root[data-theme="fresh"] .convert-btn:hover {
+    background: linear-gradient(135deg, #9dd322 0%, #91c11e 100%);
+    box-shadow: 0 6px 16px rgba(145, 193, 30, 0.35);
+    transform: translateY(-2px);
+}

@@ -1,0 +1,70 @@
+/* Light Theme */
+:root[data-theme="light"] {
+    --md-sys-color-background: #f8fafc;
+    --md-sys-color-on-background: #0f172a;
+    --md-sys-color-surface: rgba(255, 255, 255, 0.8);
+    --md-sys-color-surface-container: rgba(241, 245, 249, 0.7);
+    --md-sys-color-surface-container-high: rgba(226, 232, 240, 0.8);
+    --md-sys-color-surface-variant: rgba(226, 232, 240, 0.5);
+    --md-sys-color-on-surface: #1e293b;
+    --md-sys-color-on-surface-variant: #475569;
+
+    --md-sys-color-primary: #6366f1;
+    --md-sys-color-on-primary: #ffffff;
+    --md-sys-color-primary-container: rgba(99, 102, 241, 0.15);
+    --md-sys-color-on-primary-container: #3730a3;
+
+    --md-sys-color-secondary: #64748b;
+    --md-sys-color-on-secondary: #ffffff;
+    --md-sys-color-secondary-container: rgba(241, 245, 249, 0.8);
+    --md-sys-color-on-secondary-container: #0f172a;
+
+    --md-sys-color-error: #8b5cf6;
+    --md-sys-color-outline: rgba(148, 163, 184, 0.4);
+    --md-sys-color-outline-variant: rgba(203, 213, 225, 0.4);
+
+    /* Elevation */
+    --elevation-1: 0px 1px 3px 1px rgba(0, 0, 0, 0.08), 0px 1px 2px 0px rgba(0, 0, 0, 0.12);
+    --elevation-2: 0px 2px 6px 2px rgba(0, 0, 0, 0.08), 0px 1px 2px 0px rgba(0, 0, 0, 0.12);
+    --elevation-3: 0px 1px 3px 0px rgba(0, 0, 0, 0.12), 0px 4px 8px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Soft modern background for light mode */
+:root[data-theme="light"] body {
+    background-color: #f8fafc;
+    background-image:
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(56, 189, 248, 0.08) 0px, transparent 50%);
+    background-attachment: fixed;
+}
+
+:root[data-theme="light"] body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    backdrop-filter: blur(100px);
+    -webkit-backdrop-filter: blur(100px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+:root[data-theme="light"] .main-content {
+    background-color: transparent;
+}
+
+:root[data-theme="light"] .nav-rail {
+    background-color: rgba(255, 255, 255, 0.98);
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme="light"] .card {
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(200, 200, 200, 0.2);
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.08),
+        0 1px 2px rgba(0, 0, 0, 0.12);
+}

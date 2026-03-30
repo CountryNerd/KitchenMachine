@@ -1,0 +1,81 @@
+/* Buttons */
+.convert-btn {
+    width: 100%;
+    padding: 14px 28px;
+    background: linear-gradient(135deg, var(--md-sys-color-primary) 0%, var(--md-sys-color-error) 100%);
+    color: var(--md-sys-color-on-primary);
+    border: none;
+    border-radius: 100px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-transform: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.convert-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.convert-btn:hover {
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
+    transform: translateY(-2px);
+}
+
+.convert-btn:hover::after {
+    opacity: 1;
+}
+
+.convert-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+}
+
+/* Category Chips */
+.category-chips {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.category-chip {
+    padding: 10px 20px;
+    background-color: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface-variant);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 100px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.category-chip:hover {
+    background-color: var(--md-sys-color-surface-container-high);
+    color: var(--md-sys-color-on-surface);
+    transform: translateY(-2px);
+    box-shadow: var(--elevation-1);
+}
+
+.category-chip.active {
+    background: linear-gradient(135deg, var(--md-sys-color-primary) 0%, var(--md-sys-color-error) 100%);
+    color: var(--md-sys-color-on-primary);
+    border: none;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
