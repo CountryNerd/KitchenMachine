@@ -1,10 +1,9 @@
 /* Recipe Formatter (rf- prefix) */
 
 .rf-card {
-    max-width: 1120px;
+    max-width: 1240px;
     margin: 0 auto;
-    /* Extra premium padding/look compared to standard cards */
-    padding: clamp(24px, 4vw, 36px);
+    padding: clamp(26px, 4vw, 42px);
     border-radius: 24px;
 }
 
@@ -36,7 +35,8 @@
     background-color: var(--md-sys-color-surface-container-lowest, #ffffff);
     resize: vertical;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    min-height: 120px;
+    min-height: 132px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .rf-textarea:focus {
@@ -406,6 +406,7 @@
     color: var(--md-sys-color-on-surface, #1c1b1f);
     background-color: var(--md-sys-color-surface-container-lowest, #ffffff);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .rf-input:focus {
@@ -548,7 +549,7 @@
 
 .rf-sheet-grid {
     display: grid;
-    grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr);
+    grid-template-columns: minmax(0, 3fr) minmax(340px, 2fr);
     gap: clamp(22px, 3vw, 36px);
     align-items: start;
     position: relative;
@@ -590,6 +591,7 @@
     font-size: 1.02rem;
     line-height: 1.65;
     color: #5d4c39;
+    overflow-wrap: anywhere;
 }
 
 .rf-sheet-note {
@@ -843,6 +845,7 @@
     font-size: 0.97rem;
     line-height: 1.5;
     color: rgba(44, 35, 28, 0.9);
+    overflow-wrap: anywhere;
 }
 
 .rf-nutrition-table {
@@ -928,6 +931,7 @@
     font-size: 0.98rem;
     line-height: 1.5;
     font-weight: 600;
+    overflow-wrap: anywhere;
 }
 
 .rf-nutrition-ingredients-note {
@@ -1020,6 +1024,36 @@
     font-size: 0.95rem;
     line-height: 1.4;
     font-weight: 700;
+}
+
+:root[data-theme="dark"] .rf-label {
+    color: #ffb66e;
+}
+
+:root[data-theme="dark"] .rf-input,
+:root[data-theme="dark"] .rf-textarea {
+    background:
+        linear-gradient(180deg, rgba(33, 23, 18, 0.94), rgba(27, 18, 14, 0.96));
+    border-color: rgba(255, 142, 64, 0.34);
+    color: #fff1e2;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 186, 120, 0.12),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.16);
+    caret-color: #ffb66e;
+}
+
+:root[data-theme="dark"] .rf-input::placeholder,
+:root[data-theme="dark"] .rf-textarea::placeholder {
+    color: rgba(255, 220, 189, 0.7);
+    opacity: 1;
+}
+
+:root[data-theme="dark"] .rf-input:focus,
+:root[data-theme="dark"] .rf-textarea:focus {
+    border-color: rgba(255, 159, 84, 0.85);
+    box-shadow:
+        0 0 0 4px rgba(249, 115, 22, 0.2),
+        inset 0 1px 0 rgba(255, 186, 120, 0.16);
 }
 
 @keyframes rf-section-rise {

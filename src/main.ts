@@ -112,6 +112,7 @@ function renderApp() {
       <div class="nav-items" role="navigation" aria-label="Main Navigation">
         ${tools.map(tool => `
           <button
+            type="button"
             class="nav-item ${tool.id === activeTool ? 'active' : ''}"
             data-tool="${tool.id}"
             title="${tool.name}"
@@ -122,11 +123,21 @@ function renderApp() {
             <span class="nav-item-label">${tool.name}</span>
           </button>
         `).join('')}
+        <button
+          type="button"
+          class="nav-item nav-item-theme"
+          data-theme-toggle="true"
+          title="Toggle theme"
+          aria-label="Toggle visual theme"
+        >
+          <span class="material-icons" data-theme-icon aria-hidden="true">light_mode</span>
+          <span class="nav-item-label">Theme</span>
+        </button>
       </div>
 
       <div class="theme-toggle-container">
-        <button class="theme-toggle" id="theme-toggle" title="Toggle theme" aria-label="Toggle visual theme">
-          <span class="material-icons" id="theme-icon" aria-hidden="true">light_mode</span>
+        <button class="theme-toggle" data-theme-toggle="true" title="Toggle theme" aria-label="Toggle visual theme">
+          <span class="material-icons" data-theme-icon aria-hidden="true">light_mode</span>
           <span class="theme-toggle-label">Toggle Theme</span>
         </button>
       </div>
@@ -134,7 +145,7 @@ function renderApp() {
 
     <!-- Main Content -->
     <main class="main-content">
-      <div class="content-container">
+      <div class="content-container" id="content-container">
         <div id="tool-content">
           <!-- Tool content will be rendered here -->
         </div>
@@ -152,14 +163,20 @@ function renderApp() {
 
 function renderToolContent() {
   const toolContent = document.querySelector<HTMLDivElement>('#tool-content')!;
+  const contentContainer = document.querySelector<HTMLDivElement>('#content-container');
   const currentTool = tools.find(t => t.id === activeTool)!;
+
+  if (contentContainer) {
+    contentContainer.dataset.tool = activeTool;
+    contentContainer.classList.toggle('content-container-wide', activeTool === 'format');
+  }
 
   toolContent.innerHTML = currentTool.render();
   currentTool.attachListeners();
 }
 
 function attachNavListeners() {
-  const navButtons = document.querySelectorAll<HTMLButtonElement>('.nav-item');
+  const navButtons = document.querySelectorAll<HTMLButtonElement>('.nav-item[data-tool]');
 
   navButtons.forEach(button => {
     button.addEventListener('click', () => {
@@ -191,10 +208,10 @@ function initializeTheme() {
   document.documentElement.setAttribute('data-theme', savedTheme);
   updateThemeIcon(savedTheme);
 
-  const themeToggle = document.getElementById('theme-toggle');
-  if (themeToggle) {
-    themeToggle.addEventListener('click', toggleTheme);
-  }
+  const themeToggles = document.querySelectorAll<HTMLElement>('[data-theme-toggle]');
+  themeToggles.forEach((toggle) => {
+    toggle.addEventListener('click', toggleTheme);
+  });
 }
 
 function toggleTheme() {
@@ -216,16 +233,15 @@ function toggleTheme() {
 }
 
 function updateThemeIcon(theme: string) {
-  const themeIcon = document.getElementById('theme-icon');
-  if (themeIcon) {
-    if (theme === 'light') {
-      themeIcon.textContent = 'light_mode';
-    } else if (theme === 'dark') {
-      themeIcon.textContent = 'dark_mode';
-    } else {
-      themeIcon.textContent = 'eco'; // Green leaf icon for Fresh theme
-    }
-  }
+  const nextIcon = theme === 'light'
+    ? 'light_mode'
+    : theme === 'dark'
+      ? 'dark_mode'
+      : 'eco';
+
+  document.querySelectorAll<HTMLElement>('[data-theme-icon]').forEach((icon) => {
+    icon.textContent = nextIcon;
+  });
 }
 
 // Initialize app

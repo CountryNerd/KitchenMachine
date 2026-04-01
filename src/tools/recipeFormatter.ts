@@ -146,6 +146,22 @@ function formatIngredientDisplayName(line: string): string {
     .trim();
 }
 
+function sanitizeInstructionLine(line: string): string {
+  return line
+    .trim()
+    .replace(/^step\s*\d+\s*[:.)-]?\s*/i, '')
+    .replace(/^\d+\s*[.)-]\s*/, '')
+    .replace(/^[*-]\s+/, '')
+    .trim();
+}
+
+function normalizeInstructionLines(instructions: string): string[] {
+  return instructions
+    .split('\n')
+    .map((line) => sanitizeInstructionLine(line))
+    .filter((line) => line.length > 0);
+}
+
 function buildNutritionRows(estimate: NutritionEstimate): NutritionRowData[] {
   return [
     {
@@ -585,12 +601,27 @@ function buildRecipeMarkdownExport(state: RecipeExportState): string {
   return lines.join('\n');
 }
 
-function buildRecipeDocumentHtml(state: RecipeExportState): string {
+function buildRecipeDocumentHtml(state: RecipeExportState, options: { autoPrint?: boolean } = {}): string {
   const displayTitle = getRecipeDisplayTitle(state.title);
   const nutritionRows = buildNutritionRows(state.nutritionEstimate);
   const hasServings = state.nutritionEstimate.servingsCount !== null;
   const ingredientStatement = buildRecipeIngredientStatement(state.usedIngredients, state.nutritionEstimate);
   const trustCopy = buildNutritionTrustCopy(state.nutritionEstimate);
+  const autoPrintScript = options.autoPrint
+    ? `
+        <script>
+          window.addEventListener('load', () => {
+            window.setTimeout(() => {
+              window.print();
+            }, 180);
+
+            window.addEventListener('afterprint', () => {
+              window.setTimeout(() => window.close(), 120);
+            }, { once: true });
+          });
+        </script>
+      `
+    : '';
 
   return `
     <!doctype html>
@@ -758,11 +789,11 @@ function buildRecipeDocumentHtml(state: RecipeExportState): string {
           }
 
           .sheet-main {
-            width: 58%;
+            width: 60%;
           }
 
           .sheet-sidebar {
-            width: 42%;
+            width: 40%;
             border-left: 1px solid #e2d6c5;
             background: linear-gradient(180deg, rgba(248, 243, 232, 0.82), rgba(255, 252, 246, 0.86));
           }
@@ -823,13 +854,14 @@ function buildRecipeDocumentHtml(state: RecipeExportState): string {
           .section-copy h2 {
             margin-top: 4px;
             font-size: 26px;
-            font-family: "Helvetica Neue", Arial, sans-serif;
-            font-weight: 800;
+            font-family: Baskerville, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+            font-weight: 700;
             color: #241c14;
           }
 
           .section-copy p {
             margin: 8px 0 0;
+            font-family: Georgia, "Times New Roman", serif;
             font-size: 14px;
             line-height: 1.55;
             color: #5f5243;
@@ -860,13 +892,18 @@ function buildRecipeDocumentHtml(state: RecipeExportState): string {
 
           ol li {
             margin-bottom: 12px;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 16px;
           }
 
           .nutrition-kicker {
             margin-bottom: 10px;
-            color: #70572e;
-            font-size: 14px;
-            font-style: italic;
+            color: #6a5331;
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
           }
 
           .nutrition {
@@ -1201,6 +1238,7 @@ function buildRecipeDocumentHtml(state: RecipeExportState): string {
             </tr>
           </table>
         </main>
+      ${autoPrintScript}
       </body>
     </html>
   `;
@@ -1212,15 +1250,23 @@ function downloadFile(filename: string, content: string, mimeType: string) {
   const link = document.createElement('a');
   link.href = url;
   link.download = filename;
+  link.style.display = 'none';
   document.body.appendChild(link);
   link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => {
+    link.remove();
+    URL.revokeObjectURL(url);
+  }, 1200);
 }
 
-function buildExportFilename(extension: string): string {
+function buildExportFilename(title: string, extension: string): string {
+  const recipeSlug = getRecipeDisplayTitle(title)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    || 'formatted-recipe';
   const dateTag = new Date().toISOString().slice(0, 10);
-  return `formatted-recipe-${dateTag}.${extension}`;
+  return `${recipeSlug}-${dateTag}.${extension}`;
 }
 
 function flashActionButtonLabel(button: HTMLButtonElement, nextLabel: string, resetLabel: string) {
@@ -1276,35 +1322,35 @@ function applySectionRevealStagger(container: HTMLElement) {
 }
 
 function exportRecipeToPdf(state: RecipeExportState): boolean {
-  const printWindow = window.open('', '_blank', 'noopener,noreferrer,width=960,height=1280');
+  const printableHtml = buildRecipeDocumentHtml(state, { autoPrint: true });
+  const blob = new Blob([printableHtml], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const printWindow = window.open(url, '_blank', 'width=960,height=1280');
   if (!printWindow) {
+    URL.revokeObjectURL(url);
     return false;
   }
 
-  printWindow.document.open();
-  printWindow.document.write(buildRecipeDocumentHtml(state));
-  printWindow.document.close();
   printWindow.focus();
-
-  setTimeout(() => {
-    printWindow.print();
-  }, 250);
+  window.setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 60_000);
 
   return true;
 }
 
 function exportRecipeToWord(state: RecipeExportState) {
   downloadFile(
-    buildExportFilename('doc'),
-    buildRecipeDocumentHtml(state),
-    'application/msword'
+    buildExportFilename(state.title, 'doc'),
+    `\ufeff${buildRecipeDocumentHtml(state)}`,
+    'application/vnd.ms-word;charset=utf-8'
   );
 }
 
 function exportRecipeToMarkdown(state: RecipeExportState) {
   downloadFile(
-    buildExportFilename('md'),
-    buildRecipeMarkdownExport(state),
+    buildExportFilename(state.title, 'md'),
+    `\ufeff${buildRecipeMarkdownExport(state)}`,
     'text/markdown;charset=utf-8'
   );
 }
@@ -1316,7 +1362,7 @@ function buildRecipeState(
   servings: string,
   formattedRecipe: FormattedRecipe,
   nutritionEstimate: NutritionEstimate,
-  instructions: string
+  instructions: string[]
 ): RecipeExportState {
   return {
     title,
@@ -1325,7 +1371,7 @@ function buildRecipeState(
     servings,
     usedIngredients: formattedRecipe.reorderedIngredients,
     removedIngredients: formattedRecipe.unmatchedIngredients,
-    instructions: instructions.split('\n').filter((paragraph) => paragraph.trim().length > 0),
+    instructions,
     equipment: Array.from(new Set(formattedRecipe.equipment)),
     nutritionEstimate
   };
@@ -1415,9 +1461,11 @@ export function attachRecipeFormatterListeners() {
     const servings = document.querySelector<HTMLInputElement>('#formatter-servings')!.value;
     const ingredientsText = document.querySelector<HTMLTextAreaElement>('#formatter-ingredients')!.value;
     const instructions = document.querySelector<HTMLTextAreaElement>('#formatter-instructions')!.value;
+    const normalizedInstructions = normalizeInstructionLines(instructions);
+    const normalizedInstructionText = normalizedInstructions.join('\n');
 
     const ingredients = ingredientsText.split('\n').filter((line) => line.trim().length > 0);
-    const formattedRecipe = formatRecipe(ingredients, instructions);
+    const formattedRecipe = formatRecipe(ingredients, normalizedInstructionText);
     const nutritionEstimate = buildNutritionEstimate(formattedRecipe.reorderedIngredients, servings);
 
     lastRecipeState = buildRecipeState(
@@ -1427,7 +1475,7 @@ export function attachRecipeFormatterListeners() {
       servings,
       formattedRecipe,
       nutritionEstimate,
-      instructions
+      normalizedInstructions
     );
 
     const resultList = document.querySelector<HTMLDivElement>('#formatted-ingredients-list');

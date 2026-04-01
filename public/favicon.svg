@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Kitchen Toolbox">
+  <rect width="64" height="64" rx="15" fill="#120d0a" />
+  <g fill="none" stroke="#f97316" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.4">
+    <g transform="rotate(-34 24 33)">
+      <path d="M18 15v11" />
+      <path d="M22 15v11" />
+      <path d="M26 15v11" />
+      <path d="M18 26h8" />
+      <path d="M22 26v22" />
+    </g>
+    <g transform="rotate(34 40 31)">
+      <ellipse cx="40" cy="19" rx="5.5" ry="7.5" fill="#f97316" stroke="none" />
+      <path d="M40 26v22" />
+    </g>
+  </g>
+</svg>
