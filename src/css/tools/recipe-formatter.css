@@ -1085,7 +1085,17 @@
     }
 
     .rf-card {
-        padding: 22px;
+        padding: 0;
+        border-radius: 0;
+    }
+
+    .rf-divider {
+        margin: 0 0 24px;
+    }
+
+    .rf-footer {
+        justify-content: flex-start;
+        text-align: left;
     }
 
     .rf-sheet {

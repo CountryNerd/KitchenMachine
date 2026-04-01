@@ -223,6 +223,21 @@
         width: 100%;
     }
 
+    .tool-header {
+        margin-bottom: 20px;
+    }
+
+    .tool-header h2 {
+        font-size: clamp(1.45rem, 7vw, 1.8rem);
+        line-height: 1.05;
+    }
+
+    .tool-header p {
+        font-size: 0.97rem;
+        line-height: 1.5;
+        max-width: 34ch;
+    }
+
     .mobile-dock {
         position: fixed;
         left: 12px;
