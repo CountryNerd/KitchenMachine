@@ -394,8 +394,8 @@ export function attachKitchenTimerListeners(): void {
                 stopActiveNotification();
                 activeTimerNotification = new Notification('Kitchen timer finished', {
                     body: `${getTimerDurationLabel(totalSeconds || remainingSeconds)} is up.`,
-                    icon: '/favicon.svg',
-                    badge: '/masked-icon.svg',
+                    icon: '/icon-192.png',
+                    badge: '/icon-maskable-192.png',
                     tag: 'kitchen-toolbox-timer',
                     requireInteraction: true,
                     vibrate: [220, 120, 220, 120, 420]

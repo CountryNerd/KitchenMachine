@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Kitchen Toolbox app icon">
+  <defs>
+    <linearGradient id="kt-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a120d" />
+      <stop offset="100%" stop-color="#2a170e" />
+    </linearGradient>
+    <linearGradient id="kt-accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fb923c" />
+      <stop offset="100%" stop-color="#f97316" />
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="118" fill="url(#kt-bg)" />
+  <circle cx="256" cy="256" r="178" fill="rgba(255,255,255,0.04)" />
+
+  <g fill="none" stroke="url(#kt-accent)" stroke-linecap="round" stroke-linejoin="round" stroke-width="28">
+    <g transform="rotate(-34 188 260)">
+      <path d="M152 124v90" />
+      <path d="M184 124v90" />
+      <path d="M216 124v90" />
+      <path d="M152 214h64" />
+      <path d="M184 214v168" />
+    </g>
+    <g transform="rotate(34 324 244)">
+      <ellipse cx="324" cy="156" rx="42" ry="58" fill="#f97316" stroke="none" />
+      <path d="M324 214v168" />
+    </g>
+  </g>
+</svg>
