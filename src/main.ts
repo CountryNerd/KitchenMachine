@@ -132,10 +132,33 @@ const themeOptions: ThemeOption[] = [
 const savedTool = localStorage.getItem('kitchenToolbox_activeTool') as ToolName | null;
 let activeTool: ToolName = savedTool && tools.some(t => t.id === savedTool) ? savedTool : 'timer';
 let deferredInstallPrompt: BeforeInstallPromptEvent | null = null;
+const INSTALL_STATE_KEY = 'kitchenToolbox_appInstalled';
 
 function isStandaloneDisplayMode(): boolean {
   return window.matchMedia('(display-mode: standalone)').matches
     || (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+}
+
+function hasMarkedInstalledState(): boolean {
+  return localStorage.getItem(INSTALL_STATE_KEY) === 'true';
+}
+
+function setInstalledState(installed: boolean) {
+  if (installed) {
+    localStorage.setItem(INSTALL_STATE_KEY, 'true');
+    return;
+  }
+
+  localStorage.removeItem(INSTALL_STATE_KEY);
+}
+
+function isInstalledExperience(): boolean {
+  if (isStandaloneDisplayMode()) {
+    setInstalledState(true);
+    return true;
+  }
+
+  return hasMarkedInstalledState();
 }
 
 function getActiveTool(): Tool {
@@ -263,6 +286,23 @@ function renderMobileSheet(currentTheme: ThemeName): string {
           `).join('')}
         </div>
       </div>
+
+      <div class="mobile-menu-section">
+        <div class="mobile-menu-section-label">Support</div>
+        <a
+          class="mobile-support-link"
+          href="https://buymeacoffee.com/countrynerd"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Support Kitchen Toolbox on Buy Me a Coffee"
+        >
+          <span class="material-icons" aria-hidden="true">local_cafe</span>
+          <span class="mobile-support-copy">
+            <span class="mobile-support-title">Buy me a coffee</span>
+            <span class="mobile-support-meta">Help keep Kitchen Toolbox cooking</span>
+          </span>
+        </a>
+      </div>
     </section>
   `;
 }
@@ -311,16 +351,31 @@ function renderApp() {
           <div class="app-topbar-kicker">Kitchen Toolbox</div>
           <div class="app-topbar-title">Everyday kitchen helpers in one place</div>
         </div>
-        <button
-          type="button"
-          id="install-app-btn"
-          class="app-install-btn"
-          hidden
-          aria-label="Install Kitchen Toolbox"
-        >
-          <span class="material-icons" aria-hidden="true">download_for_offline</span>
-          <span class="app-install-btn-label">Install App</span>
-        </button>
+        <div class="app-topbar-actions">
+          <a
+            href="https://buymeacoffee.com/countrynerd"
+            class="app-support-btn"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Support Kitchen Toolbox on Buy Me a Coffee"
+          >
+            <span class="material-icons" aria-hidden="true">local_cafe</span>
+            <span class="app-support-btn-copy">
+              <span class="app-support-btn-label">Buy me a coffee</span>
+              <span class="app-support-btn-meta">Support the toolbox</span>
+            </span>
+          </a>
+          <button
+            type="button"
+            id="install-app-btn"
+            class="app-install-btn"
+            hidden
+            aria-label="Install Kitchen Toolbox"
+          >
+            <span class="material-icons" aria-hidden="true">download_for_offline</span>
+            <span class="app-install-btn-label">Install App</span>
+          </button>
+        </div>
       </div>
 
       <div class="content-container" id="content-container">
@@ -506,7 +561,7 @@ function updateInstallButtonVisibility() {
     return;
   }
 
-  const shouldShow = Boolean(deferredInstallPrompt) && !isStandaloneDisplayMode();
+  const shouldShow = Boolean(deferredInstallPrompt) && !isInstalledExperience();
   installButton.hidden = !shouldShow;
 }
 
@@ -531,6 +586,7 @@ function attachInstallButtonListener() {
       await deferredInstallPrompt.prompt();
       const choice = await deferredInstallPrompt.userChoice;
       if (choice.outcome === 'accepted') {
+        setInstalledState(true);
         deferredInstallPrompt = null;
       }
     } finally {
@@ -545,11 +601,17 @@ function attachInstallButtonListener() {
 
 window.addEventListener('beforeinstallprompt', (event) => {
   event.preventDefault();
+  if (isInstalledExperience()) {
+    deferredInstallPrompt = null;
+    updateInstallButtonVisibility();
+    return;
+  }
   deferredInstallPrompt = event as BeforeInstallPromptEvent;
   updateInstallButtonVisibility();
 });
 
 window.addEventListener('appinstalled', () => {
+  setInstalledState(true);
   deferredInstallPrompt = null;
   updateInstallButtonVisibility();
 });
