@@ -311,6 +311,16 @@
     font-size: 1.1rem;
 }
 
+@media (display-mode: standalone),
+    (display-mode: fullscreen),
+    (display-mode: minimal-ui),
+    (display-mode: window-controls-overlay) {
+    .app-topbar-actions,
+    #install-app-btn {
+        display: none !important;
+    }
+}
+
 .content-container {
     max-width: 900px;
     margin: 0 auto;

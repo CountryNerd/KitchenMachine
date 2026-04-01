@@ -104,12 +104,24 @@
 }
 
 .timer-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     font-size: 0.75rem;
     color: var(--md-sys-color-on-primary-container);
     opacity: 0.7;
     margin-top: 8px;
     text-transform: uppercase;
     letter-spacing: 0.1em;
+}
+
+.timer-label .material-icons {
+    font-size: 14px;
+}
+
+.timer-label-mobile {
+    display: none;
 }
 
 .timer-quick-actions {
@@ -359,6 +371,14 @@
 }
 
 @media (max-width: 768px) {
+    .timer-label-desktop {
+        display: none;
+    }
+
+    .timer-label-mobile {
+        display: inline;
+    }
+
     .timer-alerts {
         flex-direction: column;
     }

@@ -160,7 +160,11 @@ export function renderKitchenTimer(): string {
             <span class="timer-separator">:</span>
             <input type="text" id="timer-seconds" class="timer-digit-input" value="00" maxlength="2" />
           </div>
-          <div class="timer-label"><span class="material-icons" style="font-size: 14px; vertical-align: middle;">touch_app</span> Click to edit • Use ↑↓ arrows</div>
+          <div class="timer-label">
+            <span class="material-icons" aria-hidden="true">touch_app</span>
+            <span class="timer-label-desktop">Click to edit • Use ↑↓ arrows</span>
+            <span class="timer-label-mobile">Tap time to edit</span>
+          </div>
         </div>
       </div>
 
@@ -172,10 +176,6 @@ export function renderKitchenTimer(): string {
         <button class="timer-quick-btn" id="add-1-min" title="Add 1 minute" aria-label="Add 1 minute">
           <span class="material-icons" aria-hidden="true">add</span>
           <span>1 min</span>
-        </button>
-        <button class="timer-quick-btn" id="add-3-min" title="Add 3 minutes" aria-label="Add 3 minutes">
-          <span class="material-icons" aria-hidden="true">add</span>
-          <span>3 min</span>
         </button>
         <button class="timer-quick-btn" id="add-5-min" title="Add 5 minutes" aria-label="Add 5 minutes">
           <span class="material-icons" aria-hidden="true">add</span>
@@ -216,6 +216,7 @@ export function attachKitchenTimerListeners(): void {
     const minutesInput = document.getElementById('timer-minutes') as HTMLInputElement;
     const secondsInput = document.getElementById('timer-seconds') as HTMLInputElement;
     const progressCircle = document.getElementById('timer-progress-circle') as unknown as SVGCircleElement;
+    const alertsContainer = document.querySelector('.timer-alerts') as HTMLDivElement | null;
     const alertStatus = document.getElementById('timer-alert-status') as HTMLDivElement | null;
     const enableNotificationsBtn = document.getElementById('timer-enable-notifications') as HTMLButtonElement | null;
 
@@ -232,6 +233,18 @@ export function attachKitchenTimerListeners(): void {
         progressCircle.style.strokeDashoffset = `0`;
     }
 
+    function updateAlertsVisibility() {
+        if (!alertsContainer) {
+            return;
+        }
+
+        const shouldShow = isFinished
+            || isRunning
+            || (supportsNotifications() && Notification.permission !== 'granted');
+
+        alertsContainer.hidden = !shouldShow;
+    }
+
     function updateAlertStatus(message?: string) {
         if (!alertStatus) {
             return;
@@ -239,29 +252,48 @@ export function attachKitchenTimerListeners(): void {
 
         if (message) {
             alertStatus.textContent = message;
+            updateAlertsVisibility();
             return;
         }
 
         if (isFinished) {
             alertStatus.textContent = 'Time is up. Alarm, vibration, and browser alerts have been triggered.';
+            updateAlertsVisibility();
             return;
         }
-
-        const notificationState = !supportsNotifications()
-            ? 'Notifications unavailable in this browser.'
-            : Notification.permission === 'granted'
-                ? 'Browser notifications are on.'
-                : Notification.permission === 'denied'
-                    ? 'Browser notifications are blocked in your browser settings.'
-                    : 'Browser notifications are off.';
 
         const soundState = supportsAudioContext()
             ? 'Sound is ready when you start the timer.'
             : 'Sound may be limited in this browser.';
 
+        if (!supportsNotifications()) {
+            alertStatus.textContent = isRunning
+                ? 'Timer running. Sound alarm is armed for this device.'
+                : soundState;
+            updateAlertsVisibility();
+            return;
+        }
+
+        if (Notification.permission === 'granted') {
+            alertStatus.textContent = isRunning
+                ? 'Timer running. Sound and notifications are armed.'
+                : soundState;
+            updateAlertsVisibility();
+            return;
+        }
+
+        if (Notification.permission === 'denied') {
+            alertStatus.textContent = isRunning
+                ? 'Timer running. Browser notifications are blocked in your browser settings.'
+                : `${soundState} Browser notifications are blocked in your browser settings.`;
+            updateAlertsVisibility();
+            return;
+        }
+
         alertStatus.textContent = isRunning
-            ? `Timer running. ${notificationState}`
-            : `${soundState} ${notificationState}`;
+            ? 'Timer running. Enable browser notifications for background alerts.'
+            : `${soundState} Enable browser notifications for background alerts.`;
+        updateAlertsVisibility();
     }
 
     function updateNotificationButton() {
@@ -271,16 +303,19 @@ export function attachKitchenTimerListeners(): void {
 
         if (!supportsNotifications()) {
             enableNotificationsBtn.hidden = true;
+            updateAlertsVisibility();
             return;
         }
 
         if (Notification.permission === 'default') {
             enableNotificationsBtn.hidden = false;
             enableNotificationsBtn.disabled = false;
+            updateAlertsVisibility();
             return;
         }
 
         enableNotificationsBtn.hidden = true;
+        updateAlertsVisibility();
     }
 
     function clearCompletionState() {
@@ -558,7 +593,6 @@ export function attachKitchenTimerListeners(): void {
     // Quick action buttons
     const add30SecBtn = document.getElementById('add-30-sec') as HTMLButtonElement;
     const add1MinBtn = document.getElementById('add-1-min') as HTMLButtonElement;
-    const add3MinBtn = document.getElementById('add-3-min') as HTMLButtonElement;
     const add5MinBtn = document.getElementById('add-5-min') as HTMLButtonElement;
 
     function addSeconds(seconds: number) {
@@ -585,7 +619,6 @@ export function attachKitchenTimerListeners(): void {
 
     add30SecBtn.addEventListener('click', () => addSeconds(30));
     add1MinBtn.addEventListener('click', () => addSeconds(60));
-    add3MinBtn.addEventListener('click', () => addSeconds(180));
     add5MinBtn.addEventListener('click', () => addSeconds(300));
 
     enableNotificationsBtn?.addEventListener('click', async () => {
