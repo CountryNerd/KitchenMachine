@@ -174,6 +174,69 @@
     position: relative;
 }
 
+.app-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 auto 20px;
+    max-width: 1280px;
+}
+
+.app-topbar-copy {
+    min-width: 0;
+}
+
+.app-topbar-kicker {
+    margin-bottom: 4px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--md-sys-color-primary);
+}
+
+.app-topbar-title {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.app-install-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 18px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-primary) 35%, transparent);
+    background: color-mix(in srgb, var(--md-sys-color-primary-container) 86%, transparent);
+    color: var(--md-sys-color-on-primary-container);
+    font-size: 0.94rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
+}
+
+.app-install-btn:hover {
+    background: color-mix(in srgb, var(--md-sys-color-primary-container) 100%, transparent);
+    border-color: color-mix(in srgb, var(--md-sys-color-primary) 55%, transparent);
+    transform: translateY(-1px);
+}
+
+.app-install-btn:disabled {
+    opacity: 0.72;
+    cursor: progress;
+    transform: none;
+}
+
+.app-install-btn .material-icons {
+    font-size: 1.1rem;
+}
+
 .content-container {
     max-width: 900px;
     margin: 0 auto;
@@ -212,6 +275,16 @@
 @media (max-width: 768px) {
     .main-content {
         padding: 14px 14px calc(var(--spacing-xl) + 110px);
+    }
+
+    .app-topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        margin-bottom: 16px;
+    }
+
+    .app-install-btn {
+        width: 100%;
     }
 
     .nav-rail {

@@ -30,6 +30,11 @@ interface ThemeOption {
   description: string;
 }
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+}
+
 const tools: Tool[] = [
   {
     id: 'timer',
@@ -126,6 +131,12 @@ const themeOptions: ThemeOption[] = [
 
 const savedTool = localStorage.getItem('kitchenToolbox_activeTool') as ToolName | null;
 let activeTool: ToolName = savedTool && tools.some(t => t.id === savedTool) ? savedTool : 'timer';
+let deferredInstallPrompt: BeforeInstallPromptEvent | null = null;
+
+function isStandaloneDisplayMode(): boolean {
+  return window.matchMedia('(display-mode: standalone)').matches
+    || (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+}
 
 function getActiveTool(): Tool {
   return tools.find((tool) => tool.id === activeTool) ?? tools[0];
@@ -295,6 +306,23 @@ function renderApp() {
 
     <!-- Main Content -->
     <main class="main-content">
+      <div class="app-topbar">
+        <div class="app-topbar-copy">
+          <div class="app-topbar-kicker">Kitchen Toolbox</div>
+          <div class="app-topbar-title">Everyday kitchen helpers in one place</div>
+        </div>
+        <button
+          type="button"
+          id="install-app-btn"
+          class="app-install-btn"
+          hidden
+          aria-label="Install Kitchen Toolbox"
+        >
+          <span class="material-icons" aria-hidden="true">download_for_offline</span>
+          <span class="app-install-btn-label">Install App</span>
+        </button>
+      </div>
+
       <div class="content-container" id="content-container">
         <div id="tool-content">
           <!-- Tool content will be rendered here -->
@@ -309,6 +337,8 @@ function renderApp() {
   renderToolContent();
   attachNavListeners();
   initializeTheme();
+  attachInstallButtonListener();
+  updateInstallButtonVisibility();
 
   // Register PWA service worker
   registerSW({ immediate: true })();
@@ -469,6 +499,60 @@ function updateThemeIcon(theme: ThemeName) {
     button.setAttribute('aria-pressed', String(isActive));
   });
 }
+
+function updateInstallButtonVisibility() {
+  const installButton = document.querySelector<HTMLButtonElement>('#install-app-btn');
+  if (!installButton) {
+    return;
+  }
+
+  const shouldShow = Boolean(deferredInstallPrompt) && !isStandaloneDisplayMode();
+  installButton.hidden = !shouldShow;
+}
+
+function attachInstallButtonListener() {
+  const installButton = document.querySelector<HTMLButtonElement>('#install-app-btn');
+  if (!installButton) {
+    return;
+  }
+
+  installButton.addEventListener('click', async () => {
+    if (!deferredInstallPrompt) {
+      return;
+    }
+
+    const label = installButton.querySelector<HTMLElement>('.app-install-btn-label');
+    installButton.disabled = true;
+    if (label) {
+      label.textContent = 'Opening...';
+    }
+
+    try {
+      await deferredInstallPrompt.prompt();
+      const choice = await deferredInstallPrompt.userChoice;
+      if (choice.outcome === 'accepted') {
+        deferredInstallPrompt = null;
+      }
+    } finally {
+      installButton.disabled = false;
+      if (label) {
+        label.textContent = 'Install App';
+      }
+      updateInstallButtonVisibility();
+    }
+  });
+}
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event as BeforeInstallPromptEvent;
+  updateInstallButtonVisibility();
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  updateInstallButtonVisibility();
+});
 
 // Initialize app
 renderApp();

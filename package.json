@@ -13,5 +13,8 @@
     "vite": "^7.2.2",
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^4.0.18"
+  },
+  "dependencies": {
+    "tesseract.js": "^7.0.0"
   }
 }
