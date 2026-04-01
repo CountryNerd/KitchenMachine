@@ -30,11 +30,14 @@ type OcrWorker = Awaited<ReturnType<typeof createWorker>>;
 const INGREDIENT_HEADING_PATTERN = /^(?:ingredients?|what you(?:'|’)ll need|shopping list|pantry)\b[:\s-]*$/i;
 const INSTRUCTION_HEADING_PATTERN = /^(?:instructions?|directions?|method|steps?|preparation)\b[:\s-]*$/i;
 const META_PREP_PATTERN = /^(?:prep(?:aration)?(?:\s+time)?|hands[-\s]?on(?:\s+time)?)\s*[:\-–]?\s*(.+)$/i;
-const META_COOK_PATTERN = /^(?:cook(?:ing)?(?:\s+time)?|bake(?:\s+time)?|total\s+time)\s*[:\-–]?\s*(.+)$/i;
+const META_COOK_PATTERN = /^(?:(?:cook(?:ing)?|bake|total)\s+time)\s*[:\-–]?\s*(.+)$/i;
 const META_SERVINGS_PATTERN = /^(?:serves?|servings?|yield|makes?)\s*[:\-–]?\s*(.+)$/i;
+const META_BADGE_PATTERN = /\b(\d{1,3})\s*(m+in(?:ute)?s?)\b/i;
 const INSTRUCTION_START_PATTERN = /^(?:step\s*)?\d+\s*[.)-]\s*|^[•*-]\s+|^(?:preheat|heat|whisk|mix|stir|combine|add|beat|fold|bake|cook|let|pour|transfer|divide|grease|line|place|simmer|bring|melt|toss|season|serve|top|sprinkle|knead|shape|chill)\b/i;
 const INGREDIENT_START_PATTERN = /^(?:\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:[.,]\d+)?|¼|½|¾|⅓|⅔|⅛|one|two|three|four|five|six|seven|eight|nine|ten|a|an|pinch|dash|handful|few|couple)\b/i;
 const INGREDIENT_UNIT_PATTERN = /\b(?:cups?|tablespoons?|tbsp|tbsps?|teaspoons?|tsp|tsps?|ounces?|oz|pounds?|lbs?|lb|grams?|g|kilograms?|kg|kgs?|milliliters?|ml|liters?|litres?|l|cloves?|sticks?|packages?|pkgs?|cans?|large|medium|small)\b/i;
+const NOTE_LINE_PATTERN = /^(?:note|notes|tip|tips)\s*[:\-–]/i;
+const DECORATIVE_META_PATTERN = /^(?:[®©™]?\s*)?\d+\s*(?:m+in(?:ute)?s?)\b.*\b(?:easy|medium|hard)\b/i;
 
 let workerPromise: Promise<OcrWorker> | null = null;
 let activeProgressListener: ((progress: RecipePhotoImportProgress) => void) | null = null;
@@ -62,6 +65,20 @@ function normalizeWhitespace(value: string): string {
   return value.replace(/\s+/g, ' ').trim();
 }
 
+function normalizeMinuteUnit(value: string): string {
+  return value.toLowerCase().includes('min') ? 'minutes' : value.toLowerCase();
+}
+
+function looksLikeDurationMetadata(value: string): boolean {
+  const normalized = normalizeWhitespace(value).toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+
+  const wordCount = normalized.split(/\s+/).length;
+  return wordCount <= 6 && /\b(?:\d+\s*(?:hours?|hrs?|minutes?|mins?)|\d+\s*to\s*\d+\s*(?:hours?|hrs?|minutes?|mins?))\b/i.test(normalized);
+}
+
 function cleanOcrLine(value: string): string {
   return normalizeWhitespace(
     value
@@ -70,6 +87,29 @@ function cleanOcrLine(value: string): string {
       .replace(/[‘’]/g, '\'')
       .replace(/\s+([,.;:!?])/g, '$1')
   );
+}
+
+function cleanTitleCandidate(value: string): string {
+  const trimmed = value
+    .replace(/^[^A-Za-z0-9]+/, '')
+    .replace(/[^A-Za-z0-9)%]+$/, '')
+    .trim();
+
+  if (!trimmed) {
+    return '';
+  }
+
+  const tokens = trimmed.split(/\s+/);
+  while (
+    tokens.length >= 4 &&
+    tokens[0].length <= 2 &&
+    /^[A-Z]/.test(tokens[1]) &&
+    /^[A-Z]/.test(tokens[2])
+  ) {
+    tokens.shift();
+  }
+
+  return tokens.join(' ');
 }
 
 function stripInstructionNumbering(line: string): string {
@@ -104,6 +144,19 @@ function looksLikeIngredientLine(line: string): boolean {
     (/^\d/.test(trimmed) && INGREDIENT_UNIT_PATTERN.test(trimmed)) ||
     (/^[•*-]\s*/.test(trimmed) && !looksLikeInstructionStart(trimmed))
   );
+}
+
+function isIngredientNoteLine(line: string): boolean {
+  return NOTE_LINE_PATTERN.test(line.trim());
+}
+
+function isDecorativeSectionLine(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed) {
+    return true;
+  }
+
+  return DECORATIVE_META_PATTERN.test(trimmed) || /^[^A-Za-z0-9]+$/.test(trimmed);
 }
 
 function dedupeNeighborLines(lines: string[]): string[] {
@@ -168,7 +221,7 @@ function pickTitle(records: RecipeLineRecord[], ignoredIndexes: Set<number>): st
     record.clean.length <= 100
   );
 
-  return candidates[0]?.clean ?? '';
+  return cleanTitleCandidate(candidates[0]?.clean ?? '');
 }
 
 function parseMetadata(records: RecipeLineRecord[]) {
@@ -186,7 +239,7 @@ function parseMetadata(records: RecipeLineRecord[]) {
     }
 
     const cookMatch = record.clean.match(META_COOK_PATTERN);
-    if (cookMatch && !cookTime) {
+    if (cookMatch && !cookTime && looksLikeDurationMetadata(cookMatch[1])) {
       cookTime = normalizeWhitespace(cookMatch[1]);
       ignoredIndexes.add(record.index);
       return;
@@ -195,6 +248,19 @@ function parseMetadata(records: RecipeLineRecord[]) {
     const servingsMatch = record.clean.match(META_SERVINGS_PATTERN);
     if (servingsMatch && !servings) {
       servings = normalizeWhitespace(servingsMatch[1]);
+      ignoredIndexes.add(record.index);
+      return;
+    }
+
+    const badgeMatch = record.clean.match(META_BADGE_PATTERN);
+    if (
+      badgeMatch &&
+      !prepTime &&
+      DECORATIVE_META_PATTERN.test(record.clean) &&
+      !looksLikeIngredientLine(record.clean) &&
+      !looksLikeInstructionStart(record.clean)
+    ) {
+      prepTime = `${badgeMatch[1]} ${normalizeMinuteUnit(badgeMatch[2])}`;
       ignoredIndexes.add(record.index);
     }
   });
@@ -305,13 +371,34 @@ function splitIntoSections(records: RecipeLineRecord[], ignoredIndexes: Set<numb
   };
 }
 
-function normalizeIngredientLines(lines: string[]): string[] {
+function normalizeIngredientLines(lines: string[]) {
   const normalized: string[] = [];
+  let skippedNotes = 0;
+  let skippingNoteBlock = false;
 
   lines.forEach((line) => {
     const cleaned = line.replace(/^[•*-]\s*/, '').trim();
-    if (!cleaned || isInstructionHeading(cleaned) || isIngredientHeading(cleaned)) {
+    if (
+      !cleaned ||
+      isInstructionHeading(cleaned) ||
+      isIngredientHeading(cleaned) ||
+      isDecorativeSectionLine(cleaned)
+    ) {
       return;
+    }
+
+    if (isIngredientNoteLine(cleaned)) {
+      skippedNotes += 1;
+      skippingNoteBlock = true;
+      return;
+    }
+
+    if (skippingNoteBlock) {
+      if (!looksLikeIngredientLine(cleaned)) {
+        return;
+      }
+
+      skippingNoteBlock = false;
     }
 
     if (normalized.length > 0 && !looksLikeIngredientLine(cleaned) && !looksLikeInstructionStart(cleaned)) {
@@ -322,7 +409,10 @@ function normalizeIngredientLines(lines: string[]): string[] {
     normalized.push(cleaned);
   });
 
-  return dedupeNeighborLines(normalized);
+  return {
+    ingredients: dedupeNeighborLines(normalized),
+    skippedNotes
+  };
 }
 
 function normalizeInstructionLines(lines: string[]): string[] {
@@ -394,7 +484,8 @@ export function parseRecipeText(rawText: string, structuredLines?: string[]): Re
   }
 
   const sections = splitIntoSections(records, metadata.ignoredIndexes);
-  const ingredients = normalizeIngredientLines(sections.ingredientLines);
+  const ingredientParse = normalizeIngredientLines(sections.ingredientLines);
+  const ingredients = ingredientParse.ingredients;
   const instructions = normalizeInstructionLines(sections.instructionLines);
 
   if (!sections.usedHeadings) {
@@ -411,6 +502,10 @@ export function parseRecipeText(rawText: string, structuredLines?: string[]): Re
 
   if (ingredients.length === 0) {
     warnings.push('Ingredients were hard to separate. Review the draft before formatting.');
+  }
+
+  if (ingredientParse.skippedNotes > 0) {
+    warnings.push('Package notes were left out of the ingredient list so the draft stays recipe-ready.');
   }
 
   if (instructions.length === 0) {

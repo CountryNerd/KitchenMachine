@@ -79,4 +79,68 @@ describe('Recipe photo import parser', () => {
     expect(draft.warnings).toContain('Ingredients were hard to separate. Review the draft before formatting.');
     expect(draft.warnings).toContain('Instructions were hard to separate. Review the draft before formatting.');
   });
+
+  it('cleans package-style OCR into a recipe-ready draft', () => {
+    const draft = parseRecipeText([
+      '=]',
+      'Bi Ghirardelli Premium All-in-One Baking Kit',
+      '=a',
+      'INGREDIENTS',
+      '1 cup Butter or margarine, softened',
+      '3/4 cup Sugar',
+      '3/4 cup Brown sugar, packed',
+      '2 Eggs, large',
+      '2 teaspoons Vanilla',
+      '2 1/4 cups Flour, unsifted',
+      '1 teaspoon Baking soda',
+      '1/2 teaspoon Salt',
+      '1 cup Walnuts or pecans, chopped (optional)',
+      '2 cups Ghirardelli Bittersweet 60% Cacao Baking',
+      'Chips',
+      'Note: The 2 cups of Ghirardelli Bittersweet 60%',
+      'Cacao Baking Chips can be substituted with any',
+      'variety of chip flavor (i.e.- Ghirardelli Milk Chocolate',
+      'Chips, Semi-Sweet Chocolate Chips, etc.)',
+      '® 10 MmINuTES 100 EASY',
+      'DIRECTIONS',
+      'Heat oven to 375°F.',
+      'Stir flour with baking soda and salt; set aside.',
+      'In large mixing bowl, beat butter with sugar, and brown sugar at',
+      'medium speed until creamy and lightened in color.',
+      'Add eggs and vanilla, one at a time. Mix on low speed until',
+      'incorporated.',
+      'Gradually blend dry mixture into creamed mixture. Stir in nuts and',
+      'chocolate chips.',
+      'Drop by tablespoon onto ungreased cookie sheets.',
+      'Bake for 9 to 11 minutes or until chocolate chip cookies are golden',
+      'brown.'
+    ].join('\n'));
+
+    expect(draft.title).toBe('Ghirardelli Premium All-in-One Baking Kit');
+    expect(draft.prepTime).toBe('10 minutes');
+    expect(draft.ingredients).toEqual([
+      '1 cup Butter or margarine, softened',
+      '3/4 cup Sugar',
+      '3/4 cup Brown sugar, packed',
+      '2 Eggs, large',
+      '2 teaspoons Vanilla',
+      '2 1/4 cups Flour, unsifted',
+      '1 teaspoon Baking soda',
+      '1/2 teaspoon Salt',
+      '1 cup Walnuts or pecans, chopped (optional)',
+      '2 cups Ghirardelli Bittersweet 60% Cacao Baking Chips'
+    ]);
+    expect(draft.ingredients.join(' ')).not.toMatch(/substituted with any/i);
+    expect(draft.ingredients.join(' ')).not.toMatch(/10 MmINuTES/i);
+    expect(draft.instructions).toEqual([
+      'Heat oven to 375°F.',
+      'Stir flour with baking soda and salt; set aside.',
+      'In large mixing bowl, beat butter with sugar, and brown sugar at medium speed until creamy and lightened in color.',
+      'Add eggs and vanilla, one at a time. Mix on low speed until incorporated.',
+      'Gradually blend dry mixture into creamed mixture. Stir in nuts and chocolate chips.',
+      'Drop by tablespoon onto ungreased cookie sheets.',
+      'Bake for 9 to 11 minutes or until chocolate chip cookies are golden brown.'
+    ]);
+    expect(draft.warnings).toContain('Package notes were left out of the ingredient list so the draft stays recipe-ready.');
+  });
 });
