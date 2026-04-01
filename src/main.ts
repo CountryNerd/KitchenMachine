@@ -35,6 +35,17 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 }
 
+interface RelatedInstalledApp {
+  id?: string;
+  platform: string;
+  url?: string;
+}
+
+interface ExtendedNavigator extends Navigator {
+  standalone?: boolean;
+  getInstalledRelatedApps?: () => Promise<RelatedInstalledApp[]>;
+}
+
 const tools: Tool[] = [
   {
     id: 'timer',
@@ -133,19 +144,43 @@ const savedTool = localStorage.getItem('kitchenToolbox_activeTool') as ToolName 
 let activeTool: ToolName = savedTool && tools.some(t => t.id === savedTool) ? savedTool : 'timer';
 let deferredInstallPrompt: BeforeInstallPromptEvent | null = null;
 let installedInSession = false;
+let hasInstalledRelatedWebApp = false;
 const SUPPORT_URL = 'https://buymeacoffee.com/countrynerd';
+
+function getExtendedNavigator(): ExtendedNavigator {
+  return window.navigator as ExtendedNavigator;
+}
 
 function isStandaloneDisplayMode(): boolean {
   const displayModes = ['standalone', 'fullscreen', 'minimal-ui', 'window-controls-overlay'];
   const hasInstalledDisplayMode = displayModes.some((mode) => window.matchMedia(`(display-mode: ${mode})`).matches);
-  const isIosStandalone = (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+  const isIosStandalone = getExtendedNavigator().standalone === true;
   const hasAndroidAppReferrer = document.referrer.startsWith('android-app://');
 
   return hasInstalledDisplayMode || isIosStandalone || hasAndroidAppReferrer;
 }
 
 function isInstalledExperience(): boolean {
-  return isStandaloneDisplayMode() || installedInSession;
+  return isStandaloneDisplayMode() || installedInSession || hasInstalledRelatedWebApp;
+}
+
+async function refreshInstalledRelatedAppState() {
+  const navigatorWithRelatedApps = getExtendedNavigator();
+
+  if (!navigatorWithRelatedApps.getInstalledRelatedApps) {
+    hasInstalledRelatedWebApp = false;
+    updateInstallButtonVisibility();
+    return;
+  }
+
+  try {
+    const relatedApps = await navigatorWithRelatedApps.getInstalledRelatedApps();
+    hasInstalledRelatedWebApp = relatedApps.some((app) => app.platform === 'webapp');
+  } catch {
+    hasInstalledRelatedWebApp = false;
+  }
+
+  updateInstallButtonVisibility();
 }
 
 function getActiveTool(): Tool {
@@ -381,6 +416,7 @@ function renderApp() {
   initializeTheme();
   attachInstallButtonListener();
   updateInstallButtonVisibility();
+  void refreshInstalledRelatedAppState();
 
   // Register PWA service worker
   registerSW({ immediate: true })();
@@ -576,6 +612,7 @@ function attachInstallButtonListener() {
       const choice = await deferredInstallPrompt.userChoice;
       if (choice.outcome === 'accepted') {
         installedInSession = true;
+        hasInstalledRelatedWebApp = true;
         deferredInstallPrompt = null;
       }
     } finally {
@@ -601,8 +638,19 @@ window.addEventListener('beforeinstallprompt', (event) => {
 
 window.addEventListener('appinstalled', () => {
   installedInSession = true;
+  hasInstalledRelatedWebApp = true;
   deferredInstallPrompt = null;
   updateInstallButtonVisibility();
+});
+
+window.addEventListener('focus', () => {
+  void refreshInstalledRelatedAppState();
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    void refreshInstalledRelatedAppState();
+  }
 });
 
 // Initialize app
