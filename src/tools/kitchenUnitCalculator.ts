@@ -16,9 +16,9 @@ export function renderKitchenUnitCalculator(): string {
         <p>Convert seamlessly between cups, pounds, and grams for specific ingredients</p>
       </div>
 
-      <div class="tc-dashboard">
+      <div class="tc-dashboard kuc-dashboard">
         <!-- LEFT PANE: SOURCE -->
-        <div class="tc-pane source-pane" style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="tc-pane source-pane kuc-source-pane">
           <div class="tc-adjuster-group">
             <label class="tc-label">Ingredient</label>
             <select id="kuc-ingredient" class="uc-select">
@@ -48,29 +48,29 @@ export function renderKitchenUnitCalculator(): string {
         </div>
 
         <!-- RIGHT PANE: TARGET RESULTS -->
-        <div class="tc-pane target-pane" style="display: flex; flex-direction: column;">
-          <label class="tc-label" style="text-align: center; margin-bottom: 16px; font-size: 1rem;">Conversion Results</label>
-          <div style="display: flex; flex-direction: column; gap: 12px; flex: 1; justify-content: center;">
-            <div style="background: var(--md-sys-color-surface); border-radius: 16px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--elevation-1);">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span class="material-icons" style="color: var(--md-sys-color-primary); opacity: 0.8;">local_cafe</span>
-                <span style="font-weight: 600; color: var(--md-sys-color-on-surface-variant);">Cups</span>
+        <div class="tc-pane target-pane kuc-target-pane">
+          <label class="tc-label kuc-results-label">Conversion Results</label>
+          <div class="kuc-results-grid">
+            <div class="kuc-result-card">
+              <div class="kuc-result-meta">
+                <span class="material-icons kuc-result-icon" aria-hidden="true">local_cafe</span>
+                <span class="kuc-result-name">Cups</span>
               </div>
-              <span id="kuc-res-cups" class="tc-primary-num" style="font-size: 2.2rem;">0</span>
+              <span id="kuc-res-cups" class="tc-primary-num kuc-result-value">0</span>
             </div>
-            <div style="background: var(--md-sys-color-surface); border-radius: 16px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--elevation-1);">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span class="material-icons" style="color: var(--md-sys-color-primary); opacity: 0.8;">monitor_weight</span>
-                <span style="font-weight: 600; color: var(--md-sys-color-on-surface-variant);">Pounds</span>
+            <div class="kuc-result-card">
+              <div class="kuc-result-meta">
+                <span class="material-icons kuc-result-icon" aria-hidden="true">monitor_weight</span>
+                <span class="kuc-result-name">Pounds</span>
               </div>
-              <span id="kuc-res-pounds" class="tc-primary-num" style="font-size: 2.2rem;">0</span>
+              <span id="kuc-res-pounds" class="tc-primary-num kuc-result-value">0</span>
             </div>
-            <div style="background: var(--md-sys-color-surface); border-radius: 16px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--elevation-1);">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span class="material-icons" style="color: var(--md-sys-color-primary); opacity: 0.8;">scale</span>
-                <span style="font-weight: 600; color: var(--md-sys-color-on-surface-variant);">Grams</span>
+            <div class="kuc-result-card">
+              <div class="kuc-result-meta">
+                <span class="material-icons kuc-result-icon" aria-hidden="true">scale</span>
+                <span class="kuc-result-name">Grams</span>
               </div>
-              <span id="kuc-res-grams" class="tc-primary-num" style="font-size: 2.2rem;">0</span>
+              <span id="kuc-res-grams" class="tc-primary-num kuc-result-value">0</span>
             </div>
           </div>
         </div>
