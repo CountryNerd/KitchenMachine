@@ -118,6 +118,8 @@
     margin-top: auto;
     padding: var(--spacing-sm);
     width: 100%;
+    display: grid;
+    gap: 10px;
 }
 
 .theme-toggle {
@@ -160,6 +162,70 @@
 }
 
 .nav-rail:hover .theme-toggle-label {
+    margin-left: 12px;
+    max-width: 160px;
+    opacity: 1;
+}
+
+.nav-support-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 56px;
+    padding: 12px 14px;
+    border-radius: 28px;
+    text-decoration: none;
+    color: #4a3218;
+    border: 1px solid color-mix(in srgb, #8a5a2d 38%, transparent);
+    background: linear-gradient(180deg, rgba(255, 245, 225, 0.98), rgba(246, 229, 201, 0.98));
+    overflow: hidden;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
+}
+
+.nav-support-link .material-icons {
+    font-size: 24px;
+    min-width: 24px;
+    color: #6f4a21;
+    flex-shrink: 0;
+}
+
+.nav-support-copy {
+    margin-left: 0;
+    display: grid;
+    gap: 1px;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: opacity 0.2s ease, max-width 0.2s ease, margin-left 0.2s ease;
+}
+
+.nav-support-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    line-height: 1.15;
+    white-space: nowrap;
+}
+
+.nav-support-meta {
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: rgba(74, 50, 24, 0.72);
+    white-space: nowrap;
+}
+
+.nav-support-link:hover {
+    background: linear-gradient(180deg, rgba(255, 248, 233, 1), rgba(248, 233, 207, 1));
+    border-color: rgba(138, 90, 45, 0.56);
+    transform: translateY(-1px);
+}
+
+.nav-rail:hover .nav-support-link {
+    justify-content: flex-start;
+    padding: 12px 16px;
+}
+
+.nav-rail:hover .nav-support-copy {
     margin-left: 12px;
     max-width: 160px;
     opacity: 1;
@@ -211,7 +277,6 @@
     color: var(--md-sys-color-on-surface-variant);
 }
 
-.app-support-btn,
 .app-install-btn {
     display: inline-flex;
     align-items: center;
@@ -230,48 +295,10 @@
     transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
 }
 
-.app-support-btn {
-    text-decoration: none;
-    border-color: color-mix(in srgb, #8a5a2d 38%, transparent);
-    background:
-        linear-gradient(180deg, rgba(255, 245, 225, 0.98), rgba(246, 229, 201, 0.98));
-    color: #4a3218;
-    padding-right: 20px;
-}
-
-.app-support-btn-copy {
-    display: grid;
-    gap: 1px;
-    text-align: left;
-}
-
-.app-support-btn-label {
-    font-size: 0.92rem;
-    line-height: 1.15;
-}
-
-.app-support-btn-meta {
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    color: rgba(74, 50, 24, 0.72);
-}
-
-.app-support-btn .material-icons {
-    font-size: 1.15rem;
-}
-
-.app-support-btn:hover,
 .app-install-btn:hover {
     background: color-mix(in srgb, var(--md-sys-color-primary-container) 100%, transparent);
     border-color: color-mix(in srgb, var(--md-sys-color-primary) 55%, transparent);
     transform: translateY(-1px);
-}
-
-.app-support-btn:hover {
-    background:
-        linear-gradient(180deg, rgba(255, 248, 233, 1), rgba(248, 233, 207, 1));
-    border-color: rgba(138, 90, 45, 0.56);
 }
 
 .app-install-btn:disabled {
@@ -334,7 +361,6 @@
         width: 100%;
     }
 
-    .app-support-btn,
     .app-install-btn {
         width: 100%;
     }

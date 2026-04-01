@@ -133,10 +133,15 @@ const savedTool = localStorage.getItem('kitchenToolbox_activeTool') as ToolName 
 let activeTool: ToolName = savedTool && tools.some(t => t.id === savedTool) ? savedTool : 'timer';
 let deferredInstallPrompt: BeforeInstallPromptEvent | null = null;
 const INSTALL_STATE_KEY = 'kitchenToolbox_appInstalled';
+const SUPPORT_URL = 'https://buymeacoffee.com/countrynerd';
 
 function isStandaloneDisplayMode(): boolean {
-  return window.matchMedia('(display-mode: standalone)').matches
-    || (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+  const displayModes = ['standalone', 'fullscreen', 'minimal-ui', 'window-controls-overlay'];
+  const hasInstalledDisplayMode = displayModes.some((mode) => window.matchMedia(`(display-mode: ${mode})`).matches);
+  const isIosStandalone = (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+  const hasAndroidAppReferrer = document.referrer.startsWith('android-app://');
+
+  return hasInstalledDisplayMode || isIosStandalone || hasAndroidAppReferrer;
 }
 
 function hasMarkedInstalledState(): boolean {
@@ -291,7 +296,7 @@ function renderMobileSheet(currentTheme: ThemeName): string {
         <div class="mobile-menu-section-label">Support</div>
         <a
           class="mobile-support-link"
-          href="https://buymeacoffee.com/countrynerd"
+          href="${SUPPORT_URL}"
           target="_blank"
           rel="noreferrer"
           aria-label="Support Kitchen Toolbox on Buy Me a Coffee"
@@ -311,6 +316,7 @@ function renderApp() {
   const app = document.querySelector<HTMLDivElement>('#app')!;
   const currentTool = getActiveTool();
   const currentTheme = getSavedTheme();
+  const installedExperience = isInstalledExperience();
 
   app.innerHTML = `
     <!-- Navigation Rail -->
@@ -341,6 +347,19 @@ function renderApp() {
           <span class="material-icons" data-theme-icon aria-hidden="true">${currentTheme === 'dark' ? 'dark_mode' : currentTheme === 'fresh' ? 'eco' : 'light_mode'}</span>
           <span class="theme-toggle-label">Toggle Theme</span>
         </button>
+        <a
+          href="${SUPPORT_URL}"
+          class="nav-support-link"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Support Kitchen Toolbox on Buy Me a Coffee"
+        >
+          <span class="material-icons" aria-hidden="true">local_cafe</span>
+          <span class="nav-support-copy">
+            <span class="nav-support-title">Buy me a coffee</span>
+            <span class="nav-support-meta">Support the toolbox</span>
+          </span>
+        </a>
       </div>
     </nav>
 
@@ -351,20 +370,8 @@ function renderApp() {
           <div class="app-topbar-kicker">Kitchen Toolbox</div>
           <div class="app-topbar-title">Everyday kitchen helpers in one place</div>
         </div>
-        <div class="app-topbar-actions">
-          <a
-            href="https://buymeacoffee.com/countrynerd"
-            class="app-support-btn"
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Support Kitchen Toolbox on Buy Me a Coffee"
-          >
-            <span class="material-icons" aria-hidden="true">local_cafe</span>
-            <span class="app-support-btn-copy">
-              <span class="app-support-btn-label">Buy me a coffee</span>
-              <span class="app-support-btn-meta">Support the toolbox</span>
-            </span>
-          </a>
+        ${installedExperience ? '' : `
+        <div class="app-topbar-actions" id="app-topbar-actions" hidden>
           <button
             type="button"
             id="install-app-btn"
@@ -376,6 +383,7 @@ function renderApp() {
             <span class="app-install-btn-label">Install App</span>
           </button>
         </div>
+        `}
       </div>
 
       <div class="content-container" id="content-container">
@@ -556,12 +564,14 @@ function updateThemeIcon(theme: ThemeName) {
 }
 
 function updateInstallButtonVisibility() {
+  const installActions = document.querySelector<HTMLElement>('#app-topbar-actions');
   const installButton = document.querySelector<HTMLButtonElement>('#install-app-btn');
-  if (!installButton) {
+  if (!installButton || !installActions) {
     return;
   }
 
   const shouldShow = Boolean(deferredInstallPrompt) && !isInstalledExperience();
+  installActions.hidden = !shouldShow;
   installButton.hidden = !shouldShow;
 }
 
