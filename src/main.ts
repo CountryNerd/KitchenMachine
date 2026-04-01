@@ -132,7 +132,7 @@ const themeOptions: ThemeOption[] = [
 const savedTool = localStorage.getItem('kitchenToolbox_activeTool') as ToolName | null;
 let activeTool: ToolName = savedTool && tools.some(t => t.id === savedTool) ? savedTool : 'timer';
 let deferredInstallPrompt: BeforeInstallPromptEvent | null = null;
-const INSTALL_STATE_KEY = 'kitchenToolbox_appInstalled';
+let installedInSession = false;
 const SUPPORT_URL = 'https://buymeacoffee.com/countrynerd';
 
 function isStandaloneDisplayMode(): boolean {
@@ -144,26 +144,8 @@ function isStandaloneDisplayMode(): boolean {
   return hasInstalledDisplayMode || isIosStandalone || hasAndroidAppReferrer;
 }
 
-function hasMarkedInstalledState(): boolean {
-  return localStorage.getItem(INSTALL_STATE_KEY) === 'true';
-}
-
-function setInstalledState(installed: boolean) {
-  if (installed) {
-    localStorage.setItem(INSTALL_STATE_KEY, 'true');
-    return;
-  }
-
-  localStorage.removeItem(INSTALL_STATE_KEY);
-}
-
 function isInstalledExperience(): boolean {
-  if (isStandaloneDisplayMode()) {
-    setInstalledState(true);
-    return true;
-  }
-
-  return hasMarkedInstalledState();
+  return isStandaloneDisplayMode() || installedInSession;
 }
 
 function getActiveTool(): Tool {
@@ -316,7 +298,6 @@ function renderApp() {
   const app = document.querySelector<HTMLDivElement>('#app')!;
   const currentTool = getActiveTool();
   const currentTheme = getSavedTheme();
-  const installedExperience = isInstalledExperience();
 
   app.innerHTML = `
     <!-- Navigation Rail -->
@@ -370,7 +351,6 @@ function renderApp() {
           <div class="app-topbar-kicker">Kitchen Toolbox</div>
           <div class="app-topbar-title">Everyday kitchen helpers in one place</div>
         </div>
-        ${installedExperience ? '' : `
         <div class="app-topbar-actions" id="app-topbar-actions" hidden>
           <button
             type="button"
@@ -383,7 +363,6 @@ function renderApp() {
             <span class="app-install-btn-label">Install App</span>
           </button>
         </div>
-        `}
       </div>
 
       <div class="content-container" id="content-container">
@@ -596,7 +575,7 @@ function attachInstallButtonListener() {
       await deferredInstallPrompt.prompt();
       const choice = await deferredInstallPrompt.userChoice;
       if (choice.outcome === 'accepted') {
-        setInstalledState(true);
+        installedInSession = true;
         deferredInstallPrompt = null;
       }
     } finally {
@@ -621,7 +600,7 @@ window.addEventListener('beforeinstallprompt', (event) => {
 });
 
 window.addEventListener('appinstalled', () => {
-  setInstalledState(true);
+  installedInSession = true;
   deferredInstallPrompt = null;
   updateInstallButtonVisibility();
 });
