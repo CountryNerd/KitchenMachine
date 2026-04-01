@@ -938,8 +938,9 @@
 }
 
 .rf-sheet-tools .rf-equip-tag {
-    background-color: rgba(255, 255, 255, 0.7);
-    border-color: rgba(140, 120, 88, 0.2);
+    background: linear-gradient(180deg, rgba(244, 236, 221, 0.96), rgba(234, 223, 203, 0.96));
+    color: #34281c;
+    border-color: rgba(116, 94, 61, 0.34);
     box-shadow: none;
     font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
     font-weight: 700;
