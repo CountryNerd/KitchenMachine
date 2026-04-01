@@ -61,6 +61,32 @@ const DELIGHT_MESSAGES = {
   ]
 } as const;
 
+const SAMPLE_RECIPE_INPUT = {
+  title: 'Sunday Cinnamon Cake',
+  prepTime: '15 mins',
+  cookTime: '25 mins',
+  servings: '8',
+  ingredients: [
+    '1/2 cup butter',
+    '3/4 cup brown sugar',
+    '2 eggs',
+    '1 tsp vanilla extract',
+    '1 1/2 cups all-purpose flour',
+    '1/4 cup cocoa powder',
+    '1 tsp baking powder',
+    '1/2 cup sour cream',
+    '1 tsp cinnamon',
+    '1/4 tsp salt'
+  ].join('\n'),
+  instructions: [
+    '1. Whisk together the flour, cocoa powder, baking powder, cinnamon, and salt in a medium bowl.',
+    '2. In a second bowl, cream the butter and brown sugar until smooth.',
+    '3. Beat in the eggs, vanilla extract, and sour cream.',
+    '4. Fold the dry ingredients into the wet mixture until no dry streaks remain.',
+    '5. Divide into 8 muffin cups and bake until set.'
+  ].join('\n\n')
+} as const;
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -1424,7 +1450,14 @@ export function renderRecipeFormatter(): string {
         </div>
 
         <div class="rf-submit-wrapper">
-          <button type="submit" class="rf-btn-primary">Format Recipe + Label</button>
+          <div class="rf-submit-actions">
+            <button type="button" id="rf-load-sample" class="rf-btn-secondary">
+              <span class="material-icons" aria-hidden="true">menu_book</span>
+              Load Sample
+            </button>
+            <button type="submit" class="rf-btn-primary">Format Recipe + Label</button>
+          </div>
+          <p class="rf-submit-hint">Need a quick test? Load a ready-to-format sample recipe.</p>
         </div>
       </form>
 
@@ -1444,23 +1477,53 @@ export function renderRecipeFormatter(): string {
 
 export function attachRecipeFormatterListeners() {
   const form = document.querySelector<HTMLFormElement>('#recipe-formatter-form');
+  const titleInput = document.querySelector<HTMLInputElement>('#formatter-title');
+  const prepInput = document.querySelector<HTMLInputElement>('#formatter-prep');
+  const cookInput = document.querySelector<HTMLInputElement>('#formatter-cook');
+  const servingsInput = document.querySelector<HTMLInputElement>('#formatter-servings');
+  const ingredientsTextarea = document.querySelector<HTMLTextAreaElement>('#formatter-ingredients');
+  const instructionsTextarea = document.querySelector<HTMLTextAreaElement>('#formatter-instructions');
+  const loadSampleButton = document.querySelector<HTMLButtonElement>('#rf-load-sample');
   const card = form?.closest<HTMLElement>('.rf-card') ?? null;
   let lastRecipeState: RecipeExportState | null = null;
   let submitReason: SubmitReason = 'format';
 
-  if (!form) {
+  if (!form || !titleInput || !prepInput || !cookInput || !servingsInput || !ingredientsTextarea || !instructionsTextarea) {
     return;
   }
+
+  loadSampleButton?.addEventListener('click', () => {
+    titleInput.value = SAMPLE_RECIPE_INPUT.title;
+    prepInput.value = SAMPLE_RECIPE_INPUT.prepTime;
+    cookInput.value = SAMPLE_RECIPE_INPUT.cookTime;
+    servingsInput.value = SAMPLE_RECIPE_INPUT.servings;
+    ingredientsTextarea.value = SAMPLE_RECIPE_INPUT.ingredients;
+    instructionsTextarea.value = SAMPLE_RECIPE_INPUT.instructions;
+
+    lastRecipeState = null;
+    const resultList = document.querySelector<HTMLDivElement>('#formatted-ingredients-list');
+    const resultSection = document.querySelector<HTMLDivElement>('#formatter-result-section');
+    if (resultList) {
+      resultList.innerHTML = '';
+    }
+    if (resultSection) {
+      resultSection.classList.add('hidden');
+    }
+
+    titleInput.focus();
+    titleInput.setSelectionRange(titleInput.value.length, titleInput.value.length);
+    showFormatterToast('Sample recipe loaded. Tap Format Recipe + Label when you are ready.', 'info');
+  });
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
 
-    const title = document.querySelector<HTMLInputElement>('#formatter-title')!.value;
-    const prepTime = document.querySelector<HTMLInputElement>('#formatter-prep')!.value;
-    const cookTime = document.querySelector<HTMLInputElement>('#formatter-cook')!.value;
-    const servings = document.querySelector<HTMLInputElement>('#formatter-servings')!.value;
-    const ingredientsText = document.querySelector<HTMLTextAreaElement>('#formatter-ingredients')!.value;
-    const instructions = document.querySelector<HTMLTextAreaElement>('#formatter-instructions')!.value;
+    const title = titleInput.value;
+    const prepTime = prepInput.value;
+    const cookTime = cookInput.value;
+    const servings = servingsInput.value;
+    const ingredientsText = ingredientsTextarea.value;
+    const instructions = instructionsTextarea.value;
     const normalizedInstructions = normalizeInstructionLines(instructions);
     const normalizedInstructionText = normalizedInstructions.join('\n');
 

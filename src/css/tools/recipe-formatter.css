@@ -55,8 +55,16 @@
     margin-bottom: 24px;
 }
 
+.rf-submit-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: stretch;
+}
+
 .rf-btn-primary {
-    width: 100%;
+    flex: 1 1 280px;
+    width: auto;
     background: var(--md-sys-color-primary, #6b4ce6);
     color: var(--md-sys-color-on-primary, #ffffff);
     border: none;
@@ -84,6 +92,47 @@
 .rf-btn-primary:active {
     transform: translateY(1px);
     box-shadow: 0 2px 8px color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent);
+}
+
+.rf-btn-secondary {
+    flex: 0 0 auto;
+    min-height: 56px;
+    padding: 14px 18px;
+    border-radius: 100px;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline) 48%, transparent);
+    background: color-mix(in srgb, var(--md-sys-color-surface) 92%, transparent);
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) 88%, var(--md-sys-color-primary));
+    font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
+}
+
+.rf-btn-secondary:hover {
+    background: color-mix(in srgb, var(--md-sys-color-surface-variant) 92%, transparent);
+    border-color: color-mix(in srgb, var(--md-sys-color-primary) 34%, transparent);
+    transform: translateY(-1px);
+}
+
+.rf-btn-secondary:active {
+    transform: translateY(0);
+}
+
+.rf-btn-secondary .material-icons {
+    font-size: 1.05rem;
+}
+
+.rf-submit-hint {
+    margin: 12px 2px 0;
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+    font-size: 0.92rem;
+    line-height: 1.45;
 }
 
 .rf-divider {
@@ -1056,6 +1105,17 @@
         inset 0 1px 0 rgba(255, 186, 120, 0.16);
 }
 
+:root[data-theme="dark"] .rf-btn-secondary {
+    background: linear-gradient(180deg, rgba(33, 23, 18, 0.94), rgba(27, 18, 14, 0.96));
+    border-color: rgba(255, 142, 64, 0.34);
+    color: #ffd2a2;
+}
+
+:root[data-theme="dark"] .rf-btn-secondary:hover {
+    background: linear-gradient(180deg, rgba(41, 29, 22, 0.96), rgba(31, 21, 16, 0.98));
+    border-color: rgba(255, 159, 84, 0.54);
+}
+
 @keyframes rf-section-rise {
     from {
         opacity: 0;
@@ -1069,6 +1129,15 @@
 }
 
 @media (max-width: 640px) {
+    .rf-submit-actions {
+        flex-direction: column;
+    }
+
+    .rf-btn-primary,
+    .rf-btn-secondary {
+        width: 100%;
+    }
+
     .rf-sheet-action-row {
         width: 100%;
         justify-content: flex-start;
