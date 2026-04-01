@@ -13,6 +13,7 @@ import { renderCookingTimeCalculator, attachCookingTimeCalculatorListeners } fro
 import { renderKitchenUnitCalculator, attachKitchenUnitCalculatorListeners } from './tools/kitchenUnitCalculator';
 
 type ToolName = 'temp' | 'units' | 'scale' | 'format' | 'timer' | 'subs' | 'doneness' | 'measure' | 'cooktime' | 'kitchenunit';
+type ThemeName = 'light' | 'dark' | 'fresh';
 
 interface Tool {
   id: ToolName;
@@ -20,6 +21,13 @@ interface Tool {
   icon: string; // Material Icon name
   render: () => string;
   attachListeners: () => void;
+}
+
+interface ThemeOption {
+  id: ThemeName;
+  label: string;
+  icon: string;
+  description: string;
 }
 
 const tools: Tool[] = [
@@ -95,11 +103,163 @@ const tools: Tool[] = [
   },
 ];
 
+const themeOptions: ThemeOption[] = [
+  {
+    id: 'dark',
+    label: 'Fire',
+    icon: 'dark_mode',
+    description: 'Warm orange and black'
+  },
+  {
+    id: 'fresh',
+    label: 'Fresh',
+    icon: 'eco',
+    description: 'Garden green and bright'
+  },
+  {
+    id: 'light',
+    label: 'Paper',
+    icon: 'light_mode',
+    description: 'Clean light workspace'
+  }
+];
+
 const savedTool = localStorage.getItem('kitchenToolbox_activeTool') as ToolName | null;
 let activeTool: ToolName = savedTool && tools.some(t => t.id === savedTool) ? savedTool : 'timer';
 
+function getActiveTool(): Tool {
+  return tools.find((tool) => tool.id === activeTool) ?? tools[0];
+}
+
+function isThemeName(value: string | null | undefined): value is ThemeName {
+  return value === 'light' || value === 'dark' || value === 'fresh';
+}
+
+function getSavedTheme(): ThemeName {
+  const savedTheme = localStorage.getItem('theme');
+  return isThemeName(savedTheme) ? savedTheme : 'dark';
+}
+
+function getNextTheme(currentTheme: ThemeName): ThemeName {
+  if (currentTheme === 'light') {
+    return 'dark';
+  }
+  if (currentTheme === 'dark') {
+    return 'fresh';
+  }
+  return 'light';
+}
+
+function renderMobileDock(currentTool: Tool, currentTheme: ThemeName): string {
+  const currentThemeOption = themeOptions.find((theme) => theme.id === currentTheme) ?? themeOptions[0];
+
+  return `
+    <div class="mobile-dock" aria-label="Mobile toolbar">
+      <button
+        type="button"
+        class="mobile-dock-trigger"
+        data-mobile-menu-toggle="true"
+        aria-expanded="false"
+        aria-controls="mobile-tool-sheet"
+      >
+        <span class="mobile-dock-trigger-copy">
+          <span class="mobile-dock-kicker">Kitchen Toolbox</span>
+          <span class="mobile-dock-title" data-mobile-active-label>${currentTool.name}</span>
+        </span>
+        <span class="mobile-dock-trigger-meta">
+          <span class="material-icons mobile-dock-tool-icon" data-mobile-active-icon aria-hidden="true">${currentTool.icon}</span>
+          <span class="material-icons mobile-dock-open-icon" aria-hidden="true">apps</span>
+        </span>
+      </button>
+
+      <button
+        type="button"
+        class="mobile-theme-cycle"
+        data-theme-toggle="true"
+        aria-label="Cycle theme"
+        title="Cycle theme"
+      >
+        <span class="material-icons" data-theme-icon aria-hidden="true">${currentThemeOption.icon}</span>
+      </button>
+    </div>
+  `;
+}
+
+function renderMobileSheet(currentTheme: ThemeName): string {
+  return `
+    <div class="mobile-menu-backdrop" data-mobile-menu-close="true" aria-hidden="true"></div>
+    <section
+      class="mobile-menu-sheet"
+      id="mobile-tool-sheet"
+      aria-hidden="true"
+      aria-label="Kitchen Toolbox mobile menu"
+    >
+      <div class="mobile-menu-handle" aria-hidden="true"></div>
+
+      <header class="mobile-menu-header">
+        <div>
+          <div class="mobile-menu-kicker">Tool Switcher</div>
+          <h2>Choose your kitchen helper</h2>
+          <p>All tools and themes in one clean mobile menu.</p>
+        </div>
+
+        <button
+          type="button"
+          class="mobile-menu-close"
+          data-mobile-menu-close="true"
+          aria-label="Close mobile menu"
+        >
+          <span class="material-icons" aria-hidden="true">close</span>
+        </button>
+      </header>
+
+      <div class="mobile-menu-section">
+        <div class="mobile-menu-section-label">Tools</div>
+        <div class="mobile-menu-tools" role="navigation" aria-label="Kitchen tools">
+          ${tools.map((tool) => `
+            <button
+              type="button"
+              class="mobile-menu-tool ${tool.id === activeTool ? 'active' : ''}"
+              data-tool="${tool.id}"
+              aria-current="${tool.id === activeTool ? 'page' : 'false'}"
+            >
+              <span class="material-icons" aria-hidden="true">${tool.icon}</span>
+              <span class="mobile-menu-tool-copy">
+                <span class="mobile-menu-tool-title">${tool.name}</span>
+                <span class="mobile-menu-tool-meta">Open ${tool.name.toLowerCase()}</span>
+              </span>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="mobile-menu-section">
+        <div class="mobile-menu-section-label">Themes</div>
+        <div class="mobile-theme-grid" role="group" aria-label="Theme selection">
+          ${themeOptions.map((theme) => `
+            <button
+              type="button"
+              class="mobile-theme-option ${theme.id === currentTheme ? 'active' : ''}"
+              data-theme-select="${theme.id}"
+              aria-pressed="${theme.id === currentTheme}"
+            >
+              <span class="material-icons" aria-hidden="true">${theme.icon}</span>
+              <span class="mobile-theme-option-copy">
+                <span class="mobile-theme-option-title">${theme.label}</span>
+                <span class="mobile-theme-option-meta">${theme.description}</span>
+              </span>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
 function renderApp() {
   const app = document.querySelector<HTMLDivElement>('#app')!;
+  const currentTool = getActiveTool();
+  const currentTheme = getSavedTheme();
 
   app.innerHTML = `
     <!-- Navigation Rail -->
@@ -123,21 +283,11 @@ function renderApp() {
             <span class="nav-item-label">${tool.name}</span>
           </button>
         `).join('')}
-        <button
-          type="button"
-          class="nav-item nav-item-theme"
-          data-theme-toggle="true"
-          title="Toggle theme"
-          aria-label="Toggle visual theme"
-        >
-          <span class="material-icons" data-theme-icon aria-hidden="true">light_mode</span>
-          <span class="nav-item-label">Theme</span>
-        </button>
       </div>
 
       <div class="theme-toggle-container">
         <button class="theme-toggle" data-theme-toggle="true" title="Toggle theme" aria-label="Toggle visual theme">
-          <span class="material-icons" data-theme-icon aria-hidden="true">light_mode</span>
+          <span class="material-icons" data-theme-icon aria-hidden="true">${currentTheme === 'dark' ? 'dark_mode' : currentTheme === 'fresh' ? 'eco' : 'light_mode'}</span>
           <span class="theme-toggle-label">Toggle Theme</span>
         </button>
       </div>
@@ -151,6 +301,9 @@ function renderApp() {
         </div>
       </div>
     </main>
+
+    ${renderMobileDock(currentTool, currentTheme)}
+    ${renderMobileSheet(currentTheme)}
   `;
 
   renderToolContent();
@@ -164,7 +317,7 @@ function renderApp() {
 function renderToolContent() {
   const toolContent = document.querySelector<HTMLDivElement>('#tool-content')!;
   const contentContainer = document.querySelector<HTMLDivElement>('#content-container');
-  const currentTool = tools.find(t => t.id === activeTool)!;
+  const currentTool = getActiveTool();
 
   if (contentContainer) {
     contentContainer.dataset.tool = activeTool;
@@ -173,40 +326,124 @@ function renderToolContent() {
 
   toolContent.innerHTML = currentTool.render();
   currentTool.attachListeners();
+  syncNavigationState();
+}
+
+function syncNavigationState() {
+  const currentTool = getActiveTool();
+
+  document.querySelectorAll<HTMLElement>('[data-tool]').forEach((button) => {
+    const isActive = button.getAttribute('data-tool') === activeTool;
+    button.classList.toggle('active', isActive);
+    button.setAttribute('aria-current', isActive ? 'page' : 'false');
+  });
+
+  const mobileLabel = document.querySelector<HTMLElement>('[data-mobile-active-label]');
+  const mobileIcon = document.querySelector<HTMLElement>('[data-mobile-active-icon]');
+
+  if (mobileLabel) {
+    mobileLabel.textContent = currentTool.name;
+  }
+
+  if (mobileIcon) {
+    mobileIcon.textContent = currentTool.icon;
+  }
+}
+
+function setMobileMenuOpen(isOpen: boolean) {
+  document.body.classList.toggle('mobile-menu-open', isOpen);
+
+  const trigger = document.querySelector<HTMLElement>('[data-mobile-menu-toggle]');
+  const backdrop = document.querySelector<HTMLElement>('.mobile-menu-backdrop');
+  const sheet = document.querySelector<HTMLElement>('.mobile-menu-sheet');
+
+  if (trigger) {
+    trigger.setAttribute('aria-expanded', String(isOpen));
+  }
+
+  if (backdrop) {
+    backdrop.setAttribute('aria-hidden', String(!isOpen));
+  }
+
+  if (sheet) {
+    sheet.setAttribute('aria-hidden', String(!isOpen));
+  }
+}
+
+function setTheme(theme: ThemeName) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('theme', theme);
+  updateThemeIcon(theme);
 }
 
 function attachNavListeners() {
-  const navButtons = document.querySelectorAll<HTMLButtonElement>('.nav-item[data-tool]');
+  const toolButtons = document.querySelectorAll<HTMLButtonElement>('[data-tool]');
 
-  navButtons.forEach(button => {
+  const activateTool = (toolId: ToolName) => {
+    if (toolId === activeTool) {
+      setMobileMenuOpen(false);
+      return;
+    }
+
+    activeTool = toolId;
+    localStorage.setItem('kitchenToolbox_activeTool', activeTool);
+    renderToolContent();
+    setMobileMenuOpen(false);
+
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+      mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  toolButtons.forEach((button) => {
     button.addEventListener('click', () => {
       const toolId = button.dataset.tool as ToolName;
-      if (toolId !== activeTool) {
-        activeTool = toolId;
-        localStorage.setItem('kitchenToolbox_activeTool', activeTool);
+      activateTool(toolId);
+    });
+  });
 
-        // Update active state
-        navButtons.forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
+  document.querySelectorAll<HTMLElement>('[data-mobile-menu-toggle]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const isOpen = document.body.classList.contains('mobile-menu-open');
+      setMobileMenuOpen(!isOpen);
+    });
+  });
 
-        // Render new tool content
-        renderToolContent();
+  document.querySelectorAll<HTMLElement>('[data-mobile-menu-close]').forEach((button) => {
+    button.addEventListener('click', () => {
+      setMobileMenuOpen(false);
+    });
+  });
 
-        // Scroll to top
-        const mainContent = document.querySelector('.main-content');
-        if (mainContent) {
-          mainContent.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+  document.querySelectorAll<HTMLButtonElement>('[data-theme-select]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const nextTheme = button.dataset.themeSelect;
+      if (isThemeName(nextTheme)) {
+        setTheme(nextTheme);
       }
     });
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) {
+      setMobileMenuOpen(false);
+    }
+  });
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      setMobileMenuOpen(false);
+    }
   });
 }
 
 // Theme management
 function initializeTheme() {
-  const savedTheme = localStorage.getItem('theme') || 'dark';
+  const savedTheme = getSavedTheme();
   document.documentElement.setAttribute('data-theme', savedTheme);
   updateThemeIcon(savedTheme);
+  syncNavigationState();
 
   const themeToggles = document.querySelectorAll<HTMLElement>('[data-theme-toggle]');
   themeToggles.forEach((toggle) => {
@@ -215,32 +452,21 @@ function initializeTheme() {
 }
 
 function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-
-  // Cycle through: light → dark → fresh → light
-  let newTheme: string;
-  if (currentTheme === 'light') {
-    newTheme = 'dark';
-  } else if (currentTheme === 'dark') {
-    newTheme = 'fresh';
-  } else {
-    newTheme = 'light';
-  }
-
-  document.documentElement.setAttribute('data-theme', newTheme);
-  localStorage.setItem('theme', newTheme);
-  updateThemeIcon(newTheme);
+  const currentTheme = getSavedTheme();
+  setTheme(getNextTheme(currentTheme));
 }
 
-function updateThemeIcon(theme: string) {
-  const nextIcon = theme === 'light'
-    ? 'light_mode'
-    : theme === 'dark'
-      ? 'dark_mode'
-      : 'eco';
+function updateThemeIcon(theme: ThemeName) {
+  const nextIcon = theme === 'light' ? 'light_mode' : theme === 'dark' ? 'dark_mode' : 'eco';
 
   document.querySelectorAll<HTMLElement>('[data-theme-icon]').forEach((icon) => {
     icon.textContent = nextIcon;
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-theme-select]').forEach((button) => {
+    const isActive = button.dataset.themeSelect === theme;
+    button.classList.toggle('active', isActive);
+    button.setAttribute('aria-pressed', String(isActive));
   });
 }
 
