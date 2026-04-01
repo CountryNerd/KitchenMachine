@@ -149,6 +149,59 @@
     transform: translateY(0);
 }
 
+.timer-alerts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: var(--spacing-md);
+}
+
+.timer-alert-status {
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 92%, transparent);
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-outline) 48%, transparent);
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 0.88rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.timer-notify-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-primary) 42%, transparent);
+    background: color-mix(in srgb, var(--md-sys-color-primary-container) 88%, transparent);
+    color: var(--md-sys-color-on-primary-container);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.12s ease, border-color 0.2s ease;
+}
+
+.timer-notify-btn:hover {
+    transform: translateY(-1px);
+    background: color-mix(in srgb, var(--md-sys-color-primary-container) 100%, transparent);
+    border-color: color-mix(in srgb, var(--md-sys-color-primary) 60%, transparent);
+}
+
+.timer-notify-btn:disabled {
+    opacity: 0.72;
+    cursor: progress;
+    transform: none;
+}
+
+.timer-notify-btn .material-icons {
+    font-size: 1.05rem;
+}
+
 .timer-controls {
     display: flex;
     justify-content: center;
@@ -190,6 +243,27 @@
 .timer-btn-start:hover {
     background: var(--md-sys-color-primary-container);
     color: var(--md-sys-color-on-primary-container);
+}
+
+.timer-card.timer-complete .timer-circle {
+    animation: timerCompletePulse 1.3s ease-in-out infinite;
+}
+
+.timer-card.timer-complete .timer-alert-status {
+    background: color-mix(in srgb, var(--md-sys-color-error-container) 88%, transparent);
+    border-color: color-mix(in srgb, var(--md-sys-color-error) 42%, transparent);
+    color: var(--md-sys-color-on-error-container);
+}
+
+@keyframes timerCompletePulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
 }
 
 /* Light theme timer styles - Tomato */
@@ -282,4 +356,15 @@
 :root[data-theme="fresh"] .timer-quick-btn:hover {
     background: #91c11e;
     color: #ffffff;
+}
+
+@media (max-width: 768px) {
+    .timer-alerts {
+        flex-direction: column;
+    }
+
+    .timer-alert-status,
+    .timer-notify-btn {
+        width: 100%;
+    }
 }

@@ -10,6 +10,131 @@
 let timerInterval: number | null = null;
 let remainingSeconds = 0;
 let totalSeconds = 0;
+let timerAudioContext: AudioContext | null = null;
+let titleFlashInterval: number | null = null;
+let activeTimerNotification: Notification | null = null;
+let lastDocumentTitle = document.title;
+
+interface BeforeInstallableNotification extends NotificationOptions {
+    badge?: string;
+    vibrate?: number[];
+}
+
+function supportsNotifications(): boolean {
+    return 'Notification' in window;
+}
+
+function supportsAudioContext(): boolean {
+    return 'AudioContext' in window || 'webkitAudioContext' in window;
+}
+
+async function ensureTimerAudioReady(): Promise<AudioContext | null> {
+    if (!supportsAudioContext()) {
+        return null;
+    }
+
+    if (!timerAudioContext) {
+        const AudioContextCtor = window.AudioContext || (window as Window & typeof globalThis & {
+            webkitAudioContext?: typeof AudioContext;
+        }).webkitAudioContext;
+
+        if (!AudioContextCtor) {
+            return null;
+        }
+
+        timerAudioContext = new AudioContextCtor();
+    }
+
+    if (timerAudioContext.state === 'suspended') {
+        await timerAudioContext.resume();
+    }
+
+    return timerAudioContext;
+}
+
+function getTimerDurationLabel(seconds: number): string {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remaining = seconds % 60;
+    const parts: string[] = [];
+
+    if (hours > 0) {
+        parts.push(`${hours} hour${hours === 1 ? '' : 's'}`);
+    }
+
+    if (minutes > 0) {
+        parts.push(`${minutes} minute${minutes === 1 ? '' : 's'}`);
+    }
+
+    if (remaining > 0 || parts.length === 0) {
+        parts.push(`${remaining} second${remaining === 1 ? '' : 's'}`);
+    }
+
+    return parts.join(' ');
+}
+
+function stopTitleFlash() {
+    if (titleFlashInterval !== null) {
+        clearInterval(titleFlashInterval);
+        titleFlashInterval = null;
+        document.title = lastDocumentTitle;
+    }
+}
+
+function startTitleFlash() {
+    stopTitleFlash();
+    lastDocumentTitle = document.title;
+    let showAlertTitle = true;
+
+    titleFlashInterval = window.setInterval(() => {
+        document.title = showAlertTitle ? '⏰ Timer Done • Kitchen Toolbox' : lastDocumentTitle;
+        showAlertTitle = !showAlertTitle;
+    }, 1000);
+}
+
+function stopActiveNotification() {
+    activeTimerNotification?.close();
+    activeTimerNotification = null;
+}
+
+function playTimerAlarm() {
+    if (!timerAudioContext) {
+        return;
+    }
+
+    const now = timerAudioContext.currentTime;
+    const beepCount = 4;
+
+    for (let index = 0; index < beepCount; index += 1) {
+        const startTime = now + (index * 0.42);
+        const oscillator = timerAudioContext.createOscillator();
+        const gainNode = timerAudioContext.createGain();
+
+        oscillator.type = index % 2 === 0 ? 'triangle' : 'square';
+        oscillator.frequency.setValueAtTime(index % 2 === 0 ? 880 : 660, startTime);
+
+        gainNode.gain.setValueAtTime(0.0001, startTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.22, startTime + 0.02);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.26);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(timerAudioContext.destination);
+        oscillator.start(startTime);
+        oscillator.stop(startTime + 0.28);
+    }
+}
+
+async function requestTimerNotificationPermission(): Promise<NotificationPermission | 'unsupported'> {
+    if (!supportsNotifications()) {
+        return 'unsupported';
+    }
+
+    if (Notification.permission !== 'default') {
+        return Notification.permission;
+    }
+
+    return await Notification.requestPermission();
+}
 
 export function renderKitchenTimer(): string {
     return `
@@ -58,6 +183,16 @@ export function renderKitchenTimer(): string {
         </button>
       </div>
 
+      <div class="timer-alerts" aria-live="polite">
+        <div id="timer-alert-status" class="timer-alert-status">
+          Sound is ready when you start the timer.
+        </div>
+        <button type="button" id="timer-enable-notifications" class="timer-notify-btn" hidden>
+          <span class="material-icons" aria-hidden="true">notifications_active</span>
+          Enable notifications
+        </button>
+      </div>
+
       <div class="timer-controls" role="group" aria-label="Timer controls">
         <button class="timer-btn timer-btn-start" id="timer-start" title="Start" aria-label="Start timer">
           <span class="material-icons" aria-hidden="true">play_arrow</span>
@@ -81,8 +216,11 @@ export function attachKitchenTimerListeners(): void {
     const minutesInput = document.getElementById('timer-minutes') as HTMLInputElement;
     const secondsInput = document.getElementById('timer-seconds') as HTMLInputElement;
     const progressCircle = document.getElementById('timer-progress-circle') as unknown as SVGCircleElement;
+    const alertStatus = document.getElementById('timer-alert-status') as HTMLDivElement | null;
+    const enableNotificationsBtn = document.getElementById('timer-enable-notifications') as HTMLButtonElement | null;
 
     let isRunning = false;
+    let isFinished = false;
 
     // Calculate circle circumference (2πr where r=180)
     const radius = 180;
@@ -92,6 +230,65 @@ export function attachKitchenTimerListeners(): void {
     if (progressCircle) {
         progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
         progressCircle.style.strokeDashoffset = `0`;
+    }
+
+    function updateAlertStatus(message?: string) {
+        if (!alertStatus) {
+            return;
+        }
+
+        if (message) {
+            alertStatus.textContent = message;
+            return;
+        }
+
+        if (isFinished) {
+            alertStatus.textContent = 'Time is up. Alarm, vibration, and browser alerts have been triggered.';
+            return;
+        }
+
+        const notificationState = !supportsNotifications()
+            ? 'Notifications unavailable in this browser.'
+            : Notification.permission === 'granted'
+                ? 'Browser notifications are on.'
+                : Notification.permission === 'denied'
+                    ? 'Browser notifications are blocked in your browser settings.'
+                    : 'Browser notifications are off.';
+
+        const soundState = supportsAudioContext()
+            ? 'Sound is ready when you start the timer.'
+            : 'Sound may be limited in this browser.';
+
+        alertStatus.textContent = isRunning
+            ? `Timer running. ${notificationState}`
+            : `${soundState} ${notificationState}`;
+    }
+
+    function updateNotificationButton() {
+        if (!enableNotificationsBtn) {
+            return;
+        }
+
+        if (!supportsNotifications()) {
+            enableNotificationsBtn.hidden = true;
+            return;
+        }
+
+        if (Notification.permission === 'default') {
+            enableNotificationsBtn.hidden = false;
+            enableNotificationsBtn.disabled = false;
+            return;
+        }
+
+        enableNotificationsBtn.hidden = true;
+    }
+
+    function clearCompletionState() {
+        isFinished = false;
+        document.querySelector('.timer-card')?.classList.remove('timer-complete');
+        stopTitleFlash();
+        stopActiveNotification();
+        updateAlertStatus();
     }
 
     function updateProgress() {
@@ -128,6 +325,10 @@ export function attachKitchenTimerListeners(): void {
 
                 updateProgress();
             }
+
+            if (!isRunning) {
+                clearCompletionState();
+            }
         });
 
         // Arrow key controls
@@ -163,6 +364,10 @@ export function attachKitchenTimerListeners(): void {
 
                     updateProgress();
                 }
+
+                if (!isRunning) {
+                    clearCompletionState();
+                }
             }
         });
     });
@@ -183,6 +388,61 @@ export function attachKitchenTimerListeners(): void {
         return (hours * 3600) + (minutes * 60) + seconds;
     }
 
+    async function notifyTimerComplete() {
+        if (supportsNotifications() && Notification.permission === 'granted') {
+            try {
+                stopActiveNotification();
+                activeTimerNotification = new Notification('Kitchen timer finished', {
+                    body: `${getTimerDurationLabel(totalSeconds || remainingSeconds)} is up.`,
+                    icon: '/favicon.svg',
+                    badge: '/masked-icon.svg',
+                    tag: 'kitchen-toolbox-timer',
+                    requireInteraction: true,
+                    vibrate: [220, 120, 220, 120, 420]
+                } as BeforeInstallableNotification);
+                activeTimerNotification.onclick = () => {
+                    window.focus();
+                    stopActiveNotification();
+                    stopTitleFlash();
+                };
+            } catch (error) {
+                console.warn('Failed to show timer notification', error);
+            }
+        }
+    }
+
+    async function completeTimer() {
+        localStorage.removeItem('kitchenToolbox_timerState');
+        if (timerInterval !== null) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        isRunning = false;
+        isFinished = true;
+        remainingSeconds = 0;
+        totalSeconds = 0;
+        updateDisplayFromSeconds(0);
+        updateProgress();
+        [hoursInput, minutesInput, secondsInput].forEach(input => input.disabled = false);
+        document.querySelector('.timer-card')?.classList.add('timer-complete');
+
+        try {
+            await ensureTimerAudioReady();
+            playTimerAlarm();
+        } catch (error) {
+            console.warn('Timer alarm audio failed', error);
+        }
+
+        if ('vibrate' in navigator) {
+            navigator.vibrate?.([220, 120, 220, 120, 420]);
+        }
+
+        startTitleFlash();
+        updateAlertStatus();
+        await notifyTimerComplete();
+    }
+
     // Check if timer was initialized from another tool
     const urlParams = new URLSearchParams(window.location.search);
     const presetMinutes = urlParams.get('timerMinutes');
@@ -194,7 +454,7 @@ export function attachKitchenTimerListeners(): void {
             // Clear the URL parameter
             window.history.replaceState({}, '', window.location.pathname);
             // Auto-start the timer
-            startTimer();
+            void startTimer();
         }
     }
 
@@ -208,12 +468,14 @@ export function attachKitchenTimerListeners(): void {
             // Clear the URL parameter
             window.history.replaceState({}, '', window.location.pathname);
             // Auto-start the timer
-            startTimer();
+            void startTimer();
         }
     });
 
-    function startTimer() {
+    async function startTimer(fromUserGesture = false) {
         if (timerInterval !== null) return; // already running
+
+        clearCompletionState();
 
         if (remainingSeconds <= 0) {
             remainingSeconds = getSecondsFromDisplay();
@@ -224,38 +486,43 @@ export function attachKitchenTimerListeners(): void {
             }
         }
 
+        if (fromUserGesture) {
+            try {
+                await ensureTimerAudioReady();
+            } catch (error) {
+                console.warn('Unable to arm timer audio', error);
+            }
+
+            if (supportsNotifications() && Notification.permission === 'default') {
+                await requestTimerNotificationPermission();
+            }
+            updateNotificationButton();
+        }
+
         // Set total seconds for progress calculation
         totalSeconds = remainingSeconds;
         updateProgress();
 
         isRunning = true;
+        isFinished = false;
         [hoursInput, minutesInput, secondsInput].forEach(input => input.disabled = true);
+        updateAlertStatus();
 
         timerInterval = window.setInterval(() => {
             remainingSeconds--;
             localStorage.setItem('kitchenToolbox_timerState', JSON.stringify({ remainingSeconds, totalSeconds, timestamp: Date.now() }));
             updateProgress();
             if (remainingSeconds <= 0) {
-                localStorage.removeItem('kitchenToolbox_timerState');
-                clearInterval(timerInterval!);
-                timerInterval = null;
-                isRunning = false;
-                totalSeconds = 0;
-                [hoursInput, minutesInput, secondsInput].forEach(input => input.disabled = false);
-                alert('⏰ Time is up!');
-                // Play a sound if possible
-                try {
-                    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGWi77eeeTRAMUKfj8LZjHAY4ktjyzHksBSR3yPDdkEAKFF606+uoVRQKRp/g8r5sIQUrgsz');
-                    audio.play();
-                } catch (e) {
-                    // Ignore audio errors
-                }
+                void completeTimer();
+                return;
             }
             updateDisplayFromSeconds(Math.max(remainingSeconds, 0));
         }, 1000);
     }
 
-    startBtn.addEventListener('click', startTimer);
+    startBtn.addEventListener('click', () => {
+        void startTimer(true);
+    });
 
     pauseBtn.addEventListener('click', () => {
         if (timerInterval !== null) {
@@ -263,6 +530,7 @@ export function attachKitchenTimerListeners(): void {
             timerInterval = null;
             isRunning = false;
             [hoursInput, minutesInput, secondsInput].forEach(input => input.disabled = false);
+            updateAlertStatus();
         }
     });
 
@@ -279,6 +547,7 @@ export function attachKitchenTimerListeners(): void {
         minutesInput.value = '05';
         secondsInput.value = '00';
         [hoursInput, minutesInput, secondsInput].forEach(input => input.disabled = false);
+        clearCompletionState();
 
         // Reset progress circle
         if (progressCircle) {
@@ -293,6 +562,7 @@ export function attachKitchenTimerListeners(): void {
     const add5MinBtn = document.getElementById('add-5-min') as HTMLButtonElement;
 
     function addSeconds(seconds: number) {
+        clearCompletionState();
         // If timer is running, add to remainingSeconds
         if (isRunning && remainingSeconds > 0) {
             remainingSeconds += seconds;
@@ -318,6 +588,27 @@ export function attachKitchenTimerListeners(): void {
     add3MinBtn.addEventListener('click', () => addSeconds(180));
     add5MinBtn.addEventListener('click', () => addSeconds(300));
 
+    enableNotificationsBtn?.addEventListener('click', async () => {
+        enableNotificationsBtn.disabled = true;
+        const previousLabel = enableNotificationsBtn.innerHTML;
+        enableNotificationsBtn.innerHTML = '<span class="material-icons" aria-hidden="true">notifications</span> Enabling...';
+
+        try {
+            await requestTimerNotificationPermission();
+        } finally {
+            enableNotificationsBtn.disabled = false;
+            enableNotificationsBtn.innerHTML = previousLabel;
+            updateNotificationButton();
+            updateAlertStatus();
+        }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            stopTitleFlash();
+        }
+    });
+
     // Restore state from localStorage
     const savedTimer = localStorage.getItem('kitchenToolbox_timerState');
     if (savedTimer) {
@@ -329,7 +620,7 @@ export function attachKitchenTimerListeners(): void {
                 remainingSeconds = remaining;
                 totalSeconds = state.totalSeconds;
                 updateDisplayFromSeconds(remainingSeconds);
-                startTimer();
+                void startTimer();
             } else {
                 localStorage.removeItem('kitchenToolbox_timerState');
             }
@@ -337,6 +628,9 @@ export function attachKitchenTimerListeners(): void {
             console.error('Failed to parse timer state', e);
         }
     }
+
+    updateNotificationButton();
+    updateAlertStatus();
 }
 
 // Export function to allow other tools to start the timer
