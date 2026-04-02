@@ -9,6 +9,8 @@ export function renderMeasurementConverter(): string {
         <h2>📐 Measurement Quick Reference</h2>
         <p>Common kitchen measurement conversions at a glance</p>
       </div>
+
+      <p class="measure-guide-copy">Tap or click any line to copy it.</p>
       
       <div class="category-chips">
         ${categories.map(cat => `
@@ -46,12 +48,20 @@ function renderMeasurements(searchTerm = ""): string {
   return `
     <div class="measurement-table">
       ${filtered.map(eq => `
-        <div class="measurement-row" data-copy="${eq.from} = ${eq.value}" title="Click to copy">
+        <button
+          type="button"
+          class="measurement-row"
+          data-copy="${eq.from} = ${eq.value}"
+          aria-label="Copy ${eq.from} equals ${eq.value}"
+        >
           <div class="measure-from">${eq.from}</div>
           <div class="measure-equals">=</div>
           <div class="measure-to">${eq.value}</div>
-          <div class="measure-copy-hint"><span class="material-icons" aria-hidden="true">content_copy</span></div>
-        </div>
+          <div class="measure-copy-hint">
+            <span class="material-icons" aria-hidden="true">content_copy</span>
+            <span class="measure-copy-label">Copy</span>
+          </div>
+        </button>
       `).join('')}
     </div>
   `;
@@ -80,22 +90,43 @@ export function attachMeasurementConverterListeners() {
       measurementList.innerHTML = renderMeasurements(searchTerm);
     });
 
-    // Click-to-copy UX improvement
+    const copyMeasurement = async (row: HTMLButtonElement) => {
+      if (!row.dataset.copy) {
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(row.dataset.copy);
+      } catch {
+        return;
+      }
+
+      const hintIcon = row.querySelector('.measure-copy-hint .material-icons');
+      const hintLabel = row.querySelector('.measure-copy-label');
+
+      row.classList.add('copied');
+      if (hintIcon) {
+        hintIcon.textContent = 'check';
+      }
+      if (hintLabel) {
+        hintLabel.textContent = 'Copied';
+      }
+
+      window.setTimeout(() => {
+        row.classList.remove('copied');
+        if (hintIcon) {
+          hintIcon.textContent = 'content_copy';
+        }
+        if (hintLabel) {
+          hintLabel.textContent = 'Copy';
+        }
+      }, 1000);
+    };
+
     measurementList.addEventListener('click', (e) => {
-      const row = (e.target as Element).closest('.measurement-row') as HTMLDivElement;
-      if (row && row.dataset.copy) {
-        navigator.clipboard.writeText(row.dataset.copy).then(() => {
-          const originalBg = row.style.backgroundColor;
-          const hintIcon = row.querySelector('.measure-copy-hint .material-icons');
-
-          row.style.backgroundColor = 'var(--md-sys-color-primary-container)';
-          if (hintIcon) hintIcon.textContent = 'check';
-
-          setTimeout(() => {
-            row.style.backgroundColor = originalBg;
-            if (hintIcon) hintIcon.textContent = 'content_copy';
-          }, 800);
-        });
+      const row = (e.target as Element).closest('.measurement-row') as HTMLButtonElement | null;
+      if (row) {
+        void copyMeasurement(row);
       }
     });
   }

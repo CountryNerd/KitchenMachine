@@ -24,6 +24,7 @@ export function renderUnitConverter(): string {
       <div class="uc-workbench">
         <!-- LEFT PANE -->
         <div class="uc-pane">
+          <div class="uc-pane-label">From</div>
           <div class="uc-input-wrapper">
             <button class="icon-btn uc-adjust" id="uc-left-dec" title="Decrease"><span class="material-icons">remove</span></button>
             <input type="text" id="uc-left-input" class="uc-value" value="1" />
@@ -44,10 +45,12 @@ export function renderUnitConverter(): string {
         <!-- SWAP BUTTON -->
         <button id="uc-swap-btn" class="icon-btn uc-swap" title="Swap Units">
           <span class="material-icons">swap_horiz</span>
+          <span class="uc-swap-label">Swap units</span>
         </button>
 
         <!-- RIGHT PANE -->
         <div class="uc-pane uc-result-pane">
+          <div class="uc-pane-label">To</div>
           <div class="uc-input-wrapper">
             <button class="icon-btn uc-adjust" id="uc-right-dec" title="Decrease"><span class="material-icons">remove</span></button>
             <input type="text" id="uc-right-input" class="uc-value output" value="" />
