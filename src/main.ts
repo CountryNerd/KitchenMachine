@@ -219,7 +219,6 @@ function renderMobileDock(currentTool: Tool, currentTheme: ThemeName): string {
         aria-controls="mobile-tool-sheet"
       >
         <span class="mobile-dock-trigger-copy">
-          <span class="mobile-dock-kicker">Kitchen Toolbox</span>
           <span class="mobile-dock-title" data-mobile-active-label>${currentTool.name}</span>
         </span>
         <span class="mobile-dock-trigger-meta">
@@ -254,9 +253,8 @@ function renderMobileSheet(currentTheme: ThemeName): string {
 
       <header class="mobile-menu-header">
         <div>
-          <div class="mobile-menu-kicker">Tool Switcher</div>
-          <h2>Choose your kitchen helper</h2>
-          <p>All tools and themes in one clean mobile menu.</p>
+          <h2>Tools</h2>
+          <p>Switch tools or themes.</p>
         </div>
 
         <button
@@ -282,7 +280,6 @@ function renderMobileSheet(currentTheme: ThemeName): string {
               <span class="material-icons" aria-hidden="true">${tool.icon}</span>
               <span class="mobile-menu-tool-copy">
                 <span class="mobile-menu-tool-title">${tool.name}</span>
-                <span class="mobile-menu-tool-meta">Open ${tool.name.toLowerCase()}</span>
               </span>
             </button>
           `).join('')}
@@ -320,8 +317,8 @@ function renderMobileSheet(currentTheme: ThemeName): string {
         >
           <span class="material-icons" aria-hidden="true">local_cafe</span>
           <span class="mobile-support-copy">
-            <span class="mobile-support-title">Buy me a coffee</span>
-            <span class="mobile-support-meta">Help keep Kitchen Toolbox cooking</span>
+            <span class="mobile-support-title">Support</span>
+            <span class="mobile-support-meta">Buy me a coffee</span>
           </span>
         </a>
       </div>
@@ -372,8 +369,8 @@ function renderApp() {
         >
           <span class="material-icons" aria-hidden="true">local_cafe</span>
           <span class="nav-support-copy">
-            <span class="nav-support-title">Buy me a coffee</span>
-            <span class="nav-support-meta">Support the toolbox</span>
+            <span class="nav-support-title">Support</span>
+            <span class="nav-support-meta">Buy me a coffee</span>
           </span>
         </a>
       </div>
@@ -384,7 +381,7 @@ function renderApp() {
       <div class="app-topbar">
         <div class="app-topbar-copy">
           <div class="app-topbar-kicker">Kitchen Toolbox</div>
-          <div class="app-topbar-title">Everyday kitchen helpers in one place</div>
+          <div class="app-topbar-title">Quick kitchen tools, ready fast.</div>
         </div>
         <div class="app-topbar-actions" id="app-topbar-actions" hidden>
           <button

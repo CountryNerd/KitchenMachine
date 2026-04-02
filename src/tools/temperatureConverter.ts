@@ -4,8 +4,8 @@ export function renderTemperatureConverter(): string {
   return `
     <div class="card temp-converter-card">
       <div class="tool-header">
-        <h2>🎛️ Device & Temp Converter</h2>
-        <p>Convert recipes instantly between ovens, air fryers, and grills</p>
+        <h2>Device Converter</h2>
+        <p>Convert time and temperature between devices.</p>
       </div>
 
       <div class="tc-dashboard">
@@ -14,10 +14,10 @@ export function renderTemperatureConverter(): string {
           <div class="tc-device-select">
             <label class="tc-label">From Device</label>
             <select id="tc-source" class="uc-select">
-              <option value="oven">🎛️ Regular Oven</option>
-              <option value="convection">🌀 Convection Oven</option>
-              <option value="airfryer">🌪️ Air Fryer</option>
-              <option value="grill">♨️ Grill</option>
+              <option value="oven">Oven</option>
+              <option value="convection">Convection Oven</option>
+              <option value="airfryer">Air Fryer</option>
+              <option value="grill">Grill</option>
             </select>
           </div>
 
@@ -54,10 +54,10 @@ export function renderTemperatureConverter(): string {
           <div class="tc-device-select">
             <label class="tc-label">To Device</label>
             <select id="tc-target" class="uc-select">
-              <option value="oven">🎛️ Regular Oven</option>
-              <option value="convection">🌀 Convection Oven</option>
-              <option value="airfryer" selected>🌪️ Air Fryer</option>
-              <option value="grill">♨️ Grill</option>
+              <option value="oven">Oven</option>
+              <option value="convection">Convection Oven</option>
+              <option value="airfryer" selected>Air Fryer</option>
+              <option value="grill">Grill</option>
             </select>
           </div>
 
@@ -82,7 +82,7 @@ export function renderTemperatureConverter(): string {
       </div>
 
       <div class="footer">
-        <p>💡 Tip: These are approximate conversions. Always use a thermometer!</p>
+        <p>Use these as starting points. Check doneness with a thermometer.</p>
       </div>
     </div>
   `;

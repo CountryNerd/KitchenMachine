@@ -11,8 +11,8 @@ export function renderUnitConverter(): string {
   return `
     <div class="card unit-converter-card">
       <div class="tool-header">
-        <h2>⚖️ Universal Unit Converter</h2>
-        <p>Instant precision conversions for cooking</p>
+        <h2>Unit Converter</h2>
+        <p>Convert volume, weight, and temperature.</p>
       </div>
 
       <div class="uc-categories">

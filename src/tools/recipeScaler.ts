@@ -4,8 +4,8 @@ export function renderRecipeScaler(): string {
   return `
     <div class="card scaler-card">
       <div class="tool-header">
-        <h2>⚖️ Recipe Scaler</h2>
-        <p>Effortlessly scale ingredients up or down for any crowd</p>
+        <h2>Recipe Scaler</h2>
+        <p>Scale any ingredient list.</p>
       </div>
 
       <div class="rs-dashboard tc-dashboard">
@@ -52,20 +52,19 @@ export function renderRecipeScaler(): string {
             <label class="tc-label">Scaled Ingredients</label>
             <div id="rs-results" class="rs-results-box" style="margin-bottom: 12px;">
               <div class="rs-empty-state">
-                 <span class="material-icons" style="font-size: 48px; opacity: 0.5; margin-bottom: 8px;">receipt_long</span>
-                 <p style="color: var(--md-sys-color-on-primary-container); opacity: 0.8; font-weight: 500;">Add ingredients to see scaled results</p>
+                 <p style="color: var(--md-sys-color-on-primary-container); opacity: 0.82; font-weight: 500;">Add ingredients to see the scaled list.</p>
               </div>
             </div>
             <button class="action-btn timer-pulse-btn" id="rs-copy-btn" style="align-self: flex-end; padding: 10px 20px; font-size: 0.95rem; margin-top: 0; display: none;">
               <span class="material-icons" style="font-size: 1.2rem;">content_copy</span>
-              Copy Scaled Recipe
+              Copy List
             </button>
           </div>
         </div>
       </div>
       
       <div class="footer">
-        <p>💡 Tip: Paste your entire ingredient list into the left box to scale everything instantly.</p>
+        <p>Paste one ingredient per line.</p>
       </div>
     </div>
   `;
@@ -96,8 +95,7 @@ export function attachRecipeScalerListeners() {
     if (ingredients.length === 0) {
       resultsBox.innerHTML = `
         <div class="rs-empty-state">
-           <span class="material-icons" style="font-size: 48px; opacity: 0.5; margin-bottom: 8px;">receipt_long</span>
-           <p style="color: var(--md-sys-color-on-primary-container); opacity: 0.8; font-weight: 500;">Add ingredients to see scaled results</p>
+           <p style="color: var(--md-sys-color-on-primary-container); opacity: 0.82; font-weight: 500;">Add ingredients to see the scaled list.</p>
         </div>
       `;
       if (copyBtn) copyBtn.style.display = 'none';

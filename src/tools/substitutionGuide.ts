@@ -6,8 +6,8 @@ export function renderSubstitutionGuide(): string {
   return `
     <div class="card">
       <div class="tool-header">
-        <h2>🔄 Ingredient Substitutions</h2>
-        <p>Start with the closest match first, then open backups only if you need them.</p>
+        <h2>Substitutions</h2>
+        <p>Start with the closest match.</p>
       </div>
       
       <div class="category-chips">

@@ -6,11 +6,11 @@ export function renderMeasurementConverter(): string {
   return `
     <div class="card">
       <div class="tool-header">
-        <h2>📐 Measurement Quick Reference</h2>
-        <p>Common kitchen measurement conversions at a glance</p>
+        <h2>Measurements</h2>
+        <p>Common kitchen equivalents.</p>
       </div>
 
-      <p class="measure-guide-copy">Tap or click any line to copy it.</p>
+      <p class="measure-guide-copy">Tap a line to copy it.</p>
       
       <div class="category-chips">
         ${categories.map(cat => `
@@ -21,7 +21,7 @@ export function renderMeasurementConverter(): string {
       </div>
 
       <div class="search-box">
-        <input type="text" id="measure-search" placeholder="Search measurements..." />
+        <input type="text" id="measure-search" placeholder="Search measurements" />
       </div>
 
       <div id="measurement-list" class="measurement-list">

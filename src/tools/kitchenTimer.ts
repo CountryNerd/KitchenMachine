@@ -87,7 +87,7 @@ function startTitleFlash() {
     let showAlertTitle = true;
 
     titleFlashInterval = window.setInterval(() => {
-        document.title = showAlertTitle ? '⏰ Timer Done • Kitchen Toolbox' : lastDocumentTitle;
+        document.title = showAlertTitle ? 'Timer Done • Kitchen Toolbox' : lastDocumentTitle;
         showAlertTitle = !showAlertTitle;
     }, 1000);
 }

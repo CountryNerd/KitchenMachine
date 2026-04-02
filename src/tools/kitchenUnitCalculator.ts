@@ -12,8 +12,8 @@ export function renderKitchenUnitCalculator(): string {
   return `
     <div class="card scaler-card">
       <div class="tool-header">
-        <h2>🧮 Kitchen Unit Calculator</h2>
-        <p>Convert seamlessly between cups, pounds, and grams for specific ingredients</p>
+        <h2>Ingredient Conversions</h2>
+        <p>Convert cups, pounds, and grams.</p>
       </div>
 
       <div class="tc-dashboard kuc-dashboard">
@@ -23,7 +23,7 @@ export function renderKitchenUnitCalculator(): string {
             <label class="tc-label">Ingredient</label>
             <select id="kuc-ingredient" class="uc-select">
               ${ingredientYields.map((ing: IngredientYield) => `
-                <option value="${ing.ingredient}">${ing.icon} ${ing.ingredient}</option>
+                <option value="${ing.ingredient}">${ing.ingredient}</option>
               `).join('')}
             </select>
           </div>
@@ -77,7 +77,7 @@ export function renderKitchenUnitCalculator(): string {
       </div>
 
       <div class="footer">
-        <p>💡 Tip: Results adjust automatically using average ingredient densities.</p>
+        <p>Based on average ingredient densities.</p>
       </div>
     </div>
   `;

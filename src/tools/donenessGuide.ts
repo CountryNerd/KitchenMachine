@@ -17,8 +17,8 @@ export function renderDonenessGuide(): string {
     <div class="card">
       <div class="tool-header doneness-tool-header">
         <div>
-          <h2>🌡️ Doneness Temperature Guide</h2>
-          <p>Safe internal temperatures for perfectly cooked proteins</p>
+          <h2>Doneness Guide</h2>
+          <p>Safe internal temperatures for proteins.</p>
         </div>
         <div class="unit-toggle">
           <button class="unit-btn ${activeUnit === 'F' ? 'active' : ''}" data-unit="F">°F</button>
@@ -39,7 +39,7 @@ export function renderDonenessGuide(): string {
       </div>
 
       <div class="usda-notice">
-        ⚠️ Temperatures shown are USDA recommended safe minimums. Always use a food thermometer.
+        USDA safe minimums. Always verify with a thermometer.
       </div>
     </div>
   `;
@@ -56,10 +56,9 @@ function renderDonenessCards(): string {
     return `
     <div class="doneness-card">
       <div class="doneness-header">
-        <span class="doneness-icon">${temp.icon}</span>
         <h3>${temp.protein}</h3>
       </div>
-      ${temp.usda_minimum ? `<div class="usda-minimum">🛡️ USDA Safe Minimum: ${activeUnit === 'F' ? temp.usda_minimum + '°F' : Math.round((temp.usda_minimum - 32) * 5 / 9) + '°C'}</div>` : ''}
+      ${temp.usda_minimum ? `<div class="usda-minimum">USDA minimum: ${activeUnit === 'F' ? temp.usda_minimum + '°F' : Math.round((temp.usda_minimum - 32) * 5 / 9) + '°C'}</div>` : ''}
       
       ${isMultiStage ? `
       <div class="temp-spectrum-container">

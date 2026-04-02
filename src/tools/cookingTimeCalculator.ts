@@ -4,16 +4,16 @@ export function renderCookingTimeCalculator(): string {
   return `
     <div class="card time-calculator-card">
       <div class="tool-header">
-        <h2>⏱️ Cooking Time Calculator</h2>
-        <p>Instant prep & temp guides based on weight</p>
+        <h2>Cook Time</h2>
+        <p>Estimate cook time by weight.</p>
       </div>
 
       <div class="ct-controls">
         <div class="ct-food-select-wrapper">
-          <label class="ct-label">Protein/Dish</label>
+          <label class="ct-label">Protein or Dish</label>
           <select id="ct-food-type" class="uc-select">
             ${cookingFormulas.map(f => `
-              <option value="${f.foodType}">${f.icon} ${f.foodType}</option>
+              <option value="${f.foodType}">${f.foodType}</option>
             `).join('')}
           </select>
         </div>
@@ -51,7 +51,7 @@ export function renderCookingTimeCalculator(): string {
       </div>
 
       <div class="footer">
-        <p>🌡️ Times are estimates. Always use a meat thermometer for safety!</p>
+        <p>Use a thermometer to confirm doneness.</p>
       </div>
     </div>
   `;
